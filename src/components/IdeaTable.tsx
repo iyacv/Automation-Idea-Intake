@@ -31,7 +31,8 @@ export function IdeaTable({ ideas, onViewDetails }: IdeaTableProps) {
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
-              <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
+              <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Dept</th>
+              <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Country</th>
               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Submitter</th>
               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
@@ -50,6 +51,7 @@ export function IdeaTable({ ideas, onViewDetails }: IdeaTableProps) {
                   </button>
                 </td>
                 <td className="py-3 px-4 text-sm text-gray-600">{idea.department}</td>
+                <td className="py-3 px-4 text-sm text-gray-600">{idea.country}</td>
                 <td className="py-3 px-4 text-sm text-gray-600">{idea.submitterName}</td>
                 <td className="py-3 px-4 text-sm text-gray-600">
                   {new Date(idea.dateSubmitted).toLocaleDateString()}

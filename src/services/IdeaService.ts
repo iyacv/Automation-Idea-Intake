@@ -1,4 +1,4 @@
-import { Idea, IdeaStatus, Department, ExpectedBenefit } from '../models';
+import { Idea, IdeaStatus, Department, ExpectedBenefit, Country } from '../models';
 import { ClassificationService } from './ClassificationService';
 import { EvaluationService } from './EvaluationService';
 import { WorkflowService } from './WorkflowService';
@@ -41,6 +41,7 @@ export class IdeaService {
     title: string;
     description: string;
     department: Department;
+    country: Country;
     expectedBenefit: ExpectedBenefit;
     frequency: string;
     submitterName: string;

@@ -6,6 +6,7 @@ export interface Idea {
   title: string;
   description: string;
   department: Department;
+  country: Country;
   expectedBenefit: ExpectedBenefit;
   frequency: string;
   submitterName: string;
@@ -22,6 +23,9 @@ export interface Idea {
   priority?: number; // 1-10 scale
   adminRemarks?: string;
 }
+
+// Country
+export type Country = 'Philippines' | 'US' | 'Indonesia';
 
 // Department 
 export type Department = 
@@ -48,6 +52,8 @@ export type IdeaStatus =
   | 'Under Review'
   | 'Approved'
   | 'Rejected';
+
+export const COUNTRIES: Country[] = ['Philippines', 'US', 'Indonesia'];
 
 export const DEPARTMENTS: Department[] = [
   'IT', 'HR', 'Costing', 'Logistics', 'Planning', 'Purchasing', 'Admin'

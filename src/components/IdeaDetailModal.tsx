@@ -86,6 +86,10 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
               <p className="font-medium text-gray-800">{idea.department}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Country</p>
+              <p className="font-medium text-gray-800">{idea.country}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Submitter</p>
               <p className="font-medium text-gray-800">{idea.submitterName}</p>
             </div>

@@ -16,4 +16,4 @@ export type AuditAction =
   | 'StatusChanged'
   | 'Approved'
   | 'Rejected'
-  | 'Rerouted';
+;
