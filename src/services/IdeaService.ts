@@ -44,6 +44,11 @@ export class IdeaService {
     expectedBenefit: ExpectedBenefit;
     frequency: string;
     submitterName: string;
+    currentProcessTitle?: string;
+    currentProcessProblem?: string;
+    isManualProcess?: boolean;
+    involvesMultipleDepartments?: boolean;
+    involvedDepartments?: Department[];
   }): Idea {
     const idea: Idea = {
       id: this.generateId(),
@@ -55,8 +60,6 @@ export class IdeaService {
     this.ideas.push(idea);
     this.saveToStorage();
 
-    this.classificationService.classifyIdea(idea);
-    this.evaluationService.evaluateIdea(idea);
     this.workflowService.createWorkflow(idea.id);
     this.auditService.log(idea.id, 'Created', 'System', 'Idea submitted');
 
@@ -71,13 +74,30 @@ export class IdeaService {
     return this.ideas.find(idea => idea.id === id);
   }
 
-  updateIdeaStatus(id: string, status: IdeaStatus, remarks: string): void {
+  updateIdeaStatus(
+    id: string, 
+    status: IdeaStatus, 
+    reviewData: {
+      classification?: string;
+      priority?: number;
+      remarks?: string;
+    }
+  ): void {
     const idea = this.ideas.find(i => i.id === id);
     if (idea) {
       idea.status = status;
+      if (reviewData.classification) {
+        idea.classification = reviewData.classification as any;
+      }
+      if (reviewData.priority !== undefined) {
+        idea.priority = reviewData.priority;
+      }
+      if (reviewData.remarks) {
+        idea.adminRemarks = reviewData.remarks;
+      }
       this.saveToStorage();
-      this.workflowService.updateWorkflowStatus(id, status, remarks);
-      this.auditService.log(id, 'StatusChanged', 'Admin', `Status changed to ${status}: ${remarks}`);
+      this.workflowService.updateWorkflowStatus(id, status, reviewData.remarks || '');
+      this.auditService.log(id, 'StatusChanged', 'Admin', `Status changed to ${status}${reviewData.remarks ? ': ' + reviewData.remarks : ''}`);
     }
   }
 
@@ -96,7 +116,6 @@ export class IdeaService {
       'Under Review': this.getIdeasByStatus('Under Review').length,
       Approved: this.getIdeasByStatus('Approved').length,
       Rejected: this.getIdeasByStatus('Rejected').length,
-      Rerouted: this.getIdeasByStatus('Rerouted').length,
     };
 
     const byDepartment = this.ideas.reduce((acc, idea) => {
@@ -104,8 +123,33 @@ export class IdeaService {
       return acc;
     }, {} as Record<string, number>);
 
-    const classificationStats = this.classificationService.getStatistics();
-    const evaluationStats = this.evaluationService.getStatistics();
+    // Calculate classification stats from ideas directly
+    const classificationStats: Record<string, number> = {
+      'Automation': 0,
+      'Process Improvement': 0,
+      'Operational Enhancement': 0
+    };
+    this.ideas.forEach(idea => {
+      if (idea.classification) {
+        classificationStats[idea.classification] = (classificationStats[idea.classification] || 0) + 1;
+      }
+    });
+
+    // Calculate priority/evaluation stats from ideas directly
+    const evaluationStats: Record<string, number> = {
+      'Critical': 0,
+      'High': 0,
+      'Medium': 0,
+      'Low': 0
+    };
+    this.ideas.forEach(idea => {
+      if (idea.priority !== undefined) {
+        if (idea.priority >= 9) evaluationStats['Critical']++;
+        else if (idea.priority >= 7) evaluationStats['High']++;
+        else if (idea.priority >= 4) evaluationStats['Medium']++;
+        else evaluationStats['Low']++;
+      }
+    });
 
     return {
       total,

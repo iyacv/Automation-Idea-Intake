@@ -1,6 +1,6 @@
 interface HeaderProps {
-  currentView: 'submit' | 'admin';
-  onNavigate: (view: 'submit' | 'admin') => void;
+  currentView: 'submit' | 'admin' | 'logs';
+  onNavigate: (view: 'submit' | 'admin' | 'logs') => void;
   isLoggedIn: boolean;
   userName?: string;
   onLogout: () => void;
@@ -41,6 +41,16 @@ export function Header({ currentView, onNavigate, isLoggedIn, userName, onLogout
               }`}
             >
               Admin Dashboard
+            </button>
+            <button
+              onClick={() => onNavigate('logs')}
+              className={`text-sm font-medium transition-colors ${
+                currentView === 'logs'
+                  ? 'text-primary-700'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Logs
             </button>
           </nav>
 

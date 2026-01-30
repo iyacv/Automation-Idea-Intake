@@ -7,6 +7,6 @@ export interface User {
   department: string;
 }
 
-export type UserRole = 'Submitter' | 'Reviewer' | 'Approver' | 'Admin';
+export type UserRole = 'Submitter' | 'Admin';
 
-export const USER_ROLES: UserRole[] = ['Submitter', 'Reviewer', 'Approver', 'Admin'];
+export const USER_ROLES: UserRole[] = ['Submitter', 'Admin'];

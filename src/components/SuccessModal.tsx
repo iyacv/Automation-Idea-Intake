@@ -44,9 +44,6 @@ export function SuccessModal({ isOpen, onClose, title, ideaId }: SuccessModalPro
             >
               Submit Another Idea
             </button>
-            <p className="text-xs text-gray-400">
-              You can track your idea's progress in the Admin Dashboard.
-            </p>
           </div>
         </div>
       </div>

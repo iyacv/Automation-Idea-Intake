@@ -31,20 +31,7 @@ export class AuthService {
         role: 'Admin',
         department: 'IT'
       },
-      'reviewer@company.com': {
-        id: 'user_reviewer',
-        name: 'Reviewer User',
-        email: 'reviewer@company.com',
-        role: 'Reviewer',
-        department: 'Operations'
-      },
-      'approver@company.com': {
-        id: 'user_approver',
-        name: 'Approver User',
-        email: 'approver@company.com',
-        role: 'Approver',
-        department: 'Management'
-      }
+    
     };
 
     if (password === 'password123' && demoUsers[email]) {
@@ -71,13 +58,5 @@ export class AuthService {
 
   hasRole(role: UserRole): boolean {
     return this.currentUser?.role === role;
-  }
-
-  canApprove(): boolean {
-    return this.currentUser?.role === 'Admin' || this.currentUser?.role === 'Approver';
-  }
-
-  canReview(): boolean {
-    return this.currentUser?.role === 'Admin' || this.currentUser?.role === 'Approver' || this.currentUser?.role === 'Reviewer';
   }
 }

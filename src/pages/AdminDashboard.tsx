@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Idea, User, DEPARTMENTS } from '../models';
+import { Idea, User, IdeaStatus } from '../models';
+import { DEPARTMENTS } from '../models/Idea';
 import { IdeaService } from '../services';
 import { LoginForm, StatCard, IdeaTable, IdeaDetailModal, ChartCard, BarChart, DonutChart, ProgressCircle } from '../components';
 
@@ -23,10 +24,15 @@ export function AdminDashboard({ onLoginSuccess, user }: AdminDashboardProps) {
     setStats(ideaService.getStatistics());
   };
 
-  const handleUpdateStatus = (idea: Idea, status: Idea['status']) => {
+  const handleUpdateStatus = (
+    idea: Idea, 
+    status: IdeaStatus, 
+    reviewData: { classification?: string; priority?: number; remarks?: string }
+  ) => {
     const ideaService = new IdeaService();
-    ideaService.updateIdeaStatus(idea.id, status, `Status updated to ${status} by ${user?.name}`);
+    ideaService.updateIdeaStatus(idea.id, status, reviewData);
     loadData();
+    setSelectedIdea(null);
   };
 
   if (!user) return <LoginForm onLoginSuccess={onLoginSuccess} />;
@@ -101,11 +107,17 @@ export function AdminDashboard({ onLoginSuccess, user }: AdminDashboardProps) {
             <h2 className="text-lg font-semibold text-gray-800">All Submitted Ideas</h2>
             <button onClick={loadData} className="px-4 py-2 text-sm font-medium text-primary-600 hover:bg-primary-50 rounded-lg">Refresh</button>
           </div>
-          <IdeaTable ideas={ideas} onViewDetails={setSelectedIdea} onUpdateStatus={handleUpdateStatus} />
+          <IdeaTable ideas={ideas} onViewDetails={setSelectedIdea} />
         </div>
       </div>
 
-      {selectedIdea && <IdeaDetailModal idea={selectedIdea} onClose={() => setSelectedIdea(null)} />}
+      {selectedIdea && (
+        <IdeaDetailModal 
+          idea={selectedIdea} 
+          onClose={() => setSelectedIdea(null)} 
+          onUpdateStatus={handleUpdateStatus}
+        />
+      )}
     </div>
   );
 }

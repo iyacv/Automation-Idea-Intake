@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-// ChartCard wrapper component
+// ChartCard  
 interface ChartCardProps {
   title: string;
   children: ReactNode;
@@ -15,7 +15,7 @@ export function ChartCard({ title, children }: ChartCardProps) {
   );
 }
 
-// Bar Chart data structure
+// Bar Chart  
 interface ChartData {
   label: string;
   value: number;
@@ -52,7 +52,7 @@ export function BarChart({ data }: BarChartProps) {
   );
 }
 
-// Donut Chart component
+// Donut Chart 
 interface DonutChartProps {
   data: ChartData[];
   centerLabel?: string;
@@ -129,7 +129,7 @@ export function DonutChart({ data, centerLabel, centerValue }: DonutChartProps) 
   );
 }
 
-// Progress Circle component
+// Progress Circle 
 interface ProgressCircleProps {
   value: number;
   label: string;

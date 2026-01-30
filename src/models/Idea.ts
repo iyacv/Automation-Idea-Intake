@@ -1,3 +1,5 @@
+import { ClassificationCategory } from './Classification';
+
 // Idea Model
 export interface Idea {
   id: string;
@@ -9,6 +11,16 @@ export interface Idea {
   submitterName: string;
   dateSubmitted: Date;
   status: IdeaStatus;
+  // Current process fields
+  currentProcessTitle?: string;
+  currentProcessProblem?: string;
+  isManualProcess?: boolean;
+  involvesMultipleDepartments?: boolean;
+  involvedDepartments?: Department[];
+  // Admin review fields
+  classification?: ClassificationCategory;
+  priority?: number; // 1-10 scale
+  adminRemarks?: string;
 }
 
 // Department 
@@ -27,17 +39,15 @@ export type ExpectedBenefit =
   | 'Time Savings'
   | 'Cost Reduction'
   | 'Quality Improvement'
-  | 'Risk Reduction'
   | 'Customer Satisfaction'
   | 'Employee Satisfaction';
 
-// Idea Status
+// Idea Status (removed Rerouted)
 export type IdeaStatus = 
   | 'Submitted'
   | 'Under Review'
   | 'Approved'
-  | 'Rejected'
-  | 'Rerouted';
+  | 'Rejected';
 
 export const DEPARTMENTS: Department[] = [
   'IT', 'HR', 'Costing', 'Logistics', 'Planning', 'Purchasing', 'Admin'

@@ -14,13 +14,11 @@ export type WorkflowStatus =
   | 'Submitted'
   | 'Under Review'
   | 'Approved'
-  | 'Rejected'
-  | 'Rerouted';
+  | 'Rejected';
 
 export const WORKFLOW_STATUSES: WorkflowStatus[] = [
   'Submitted',
   'Under Review',
   'Approved',
-  'Rejected',
-  'Rerouted'
+  'Rejected'
 ];

@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { User } from './models';
 import { AuthService } from './services';
 import { Header } from './components';
-import { SubmitPage, AdminDashboard } from './pages';
+import { SubmitPage, AdminDashboard, LogsPage } from './pages';
 
 function App() {
-  const [currentView, setCurrentView] = useState<'submit' | 'admin'>('submit');
+  const [currentView, setCurrentView] = useState<'submit' | 'admin' | 'logs'>('submit');
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ function App() {
     setCurrentView('submit');
   };
 
-  const handleNavigate = (view: 'submit' | 'admin') => {
+  const handleNavigate = (view: 'submit' | 'admin' | 'logs') => {
     setCurrentView(view);
   };
 
@@ -44,6 +44,8 @@ function App() {
       <main>
         {currentView === 'submit' ? (
           <SubmitPage />
+        ) : currentView === 'logs' ? (
+          <LogsPage />
         ) : (
           <AdminDashboard user={user} onLoginSuccess={handleLoginSuccess} />
         )}
