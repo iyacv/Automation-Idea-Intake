@@ -11,18 +11,18 @@ export interface Idea {
   status: IdeaStatus;
 }
 
-// Department enum
+// Department 
 export type Department = 
   | 'IT'
   | 'HR'
-  | 'Finance'
-  | 'Operations'
-  | 'Marketing'
-  | 'Sales'
-  | 'Customer Service'
-  | 'Legal';
+  | 'Costing'
+  | 'Logistics'
+  | 'Planning'
+  | 'Purchasing'
+  | 'Admin'
+;
 
-// Expected Benefit enum
+// Expected Benefit 
 export type ExpectedBenefit =
   | 'Time Savings'
   | 'Cost Reduction'
@@ -40,9 +40,9 @@ export type IdeaStatus =
   | 'Rerouted';
 
 export const DEPARTMENTS: Department[] = [
-  'IT', 'HR', 'Finance', 'Operations', 'Marketing', 'Sales', 'Customer Service', 'Legal'
+  'IT', 'HR', 'Costing', 'Logistics', 'Planning', 'Purchasing', 'Admin'
 ];
 
 export const EXPECTED_BENEFITS: ExpectedBenefit[] = [
-  'Time Savings', 'Cost Reduction', 'Quality Improvement', 'Risk Reduction', 'Customer Satisfaction', 'Employee Satisfaction'
+  'Time Savings', 'Cost Reduction', 'Quality Improvement', 'Customer Satisfaction', 'Employee Satisfaction'
 ];
