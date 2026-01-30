@@ -51,59 +51,115 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
     }
   };
 
-  const inputClass = (field: string) => `w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 outline-none ${errors[field] ? 'border-accent-red bg-red-50' : 'border-gray-200 bg-white focus:border-primary-500'}`;
+  const inputClass = (field: string) => 
+    `w-full px-3 py-2.5 rounded-md border transition-all duration-200 outline-none text-sm ${
+      errors[field] 
+        ? 'border-red-400 bg-red-50 focus:border-red-500' 
+        : 'border-gray-300 bg-white focus:border-primary-600 focus:ring-1 focus:ring-primary-600'
+    }`;
+
+  const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Idea Title <span className="text-red-500">*</span></label>
-        <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Enter a descriptive title" className={inputClass('title')} />
-        {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Description <span className="text-red-500">*</span></label>
-        <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Describe your idea in detail" rows={5} className={inputClass('description')} />
-        {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Two column layout for first row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Department <span className="text-red-500">*</span></label>
-          <select value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value as Department })} className={inputClass('department')}>
+          <label className={labelClass}>Idea Title <span className="text-red-500">*</span></label>
+          <input 
+            type="text" 
+            value={formData.title} 
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })} 
+            placeholder="Enter idea title" 
+            className={inputClass('title')} 
+          />
+          {errors.title && <p className="mt-1 text-xs text-red-500">{errors.title}</p>}
+        </div>
+
+        <div>
+          <label className={labelClass}>Your Name <span className="text-red-500">*</span></label>
+          <input 
+            type="text" 
+            value={formData.submitterName} 
+            onChange={(e) => setFormData({ ...formData, submitterName: e.target.value })} 
+            placeholder="Enter your full name" 
+            className={inputClass('submitterName')} 
+          />
+          {errors.submitterName && <p className="mt-1 text-xs text-red-500">{errors.submitterName}</p>}
+        </div>
+      </div>
+
+      {/* Description */}
+      <div>
+        <label className={labelClass}>Description <span className="text-red-500">*</span></label>
+        <textarea 
+          value={formData.description} 
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })} 
+          placeholder="Describe your idea in detail" 
+          rows={4} 
+          className={inputClass('description')} 
+        />
+        {errors.description && <p className="mt-1 text-xs text-red-500">{errors.description}</p>}
+      </div>
+
+      {/* Two column layout for dropdowns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label className={labelClass}>Department <span className="text-red-500">*</span></label>
+          <select 
+            value={formData.department} 
+            onChange={(e) => setFormData({ ...formData, department: e.target.value as Department })} 
+            className={inputClass('department')}
+          >
             <option value="">Select department</option>
             {DEPARTMENTS.map((dept: Department) => <option key={dept} value={dept}>{dept}</option>)}
           </select>
-          {errors.department && <p className="mt-1 text-sm text-red-500">{errors.department}</p>}
+          {errors.department && <p className="mt-1 text-xs text-red-500">{errors.department}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Expected Benefit <span className="text-red-500">*</span></label>
-          <select value={formData.expectedBenefit} onChange={(e) => setFormData({ ...formData, expectedBenefit: e.target.value as ExpectedBenefit })} className={inputClass('expectedBenefit')}>
+          <label className={labelClass}>Expected Benefit <span className="text-red-500">*</span></label>
+          <select 
+            value={formData.expectedBenefit} 
+            onChange={(e) => setFormData({ ...formData, expectedBenefit: e.target.value as ExpectedBenefit })} 
+            className={inputClass('expectedBenefit')}
+          >
             <option value="">Select expected benefit</option>
             {EXPECTED_BENEFITS.map((benefit: ExpectedBenefit) => <option key={benefit} value={benefit}>{benefit}</option>)}
           </select>
-          {errors.expectedBenefit && <p className="mt-1 text-sm text-red-500">{errors.expectedBenefit}</p>}
+          {errors.expectedBenefit && <p className="mt-1 text-xs text-red-500">{errors.expectedBenefit}</p>}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Frequency <span className="text-red-500">*</span></label>
-          <input type="text" value={formData.frequency} onChange={(e) => setFormData({ ...formData, frequency: e.target.value })} placeholder="e.g., Daily, Weekly" className={inputClass('frequency')} />
-          {errors.frequency && <p className="mt-1 text-sm text-red-500">{errors.frequency}</p>}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Your Name <span className="text-red-500">*</span></label>
-          <input type="text" value={formData.submitterName} onChange={(e) => setFormData({ ...formData, submitterName: e.target.value })} placeholder="Enter your full name" className={inputClass('submitterName')} />
-          {errors.submitterName && <p className="mt-1 text-sm text-red-500">{errors.submitterName}</p>}
-        </div>
+      {/* Frequency */}
+      <div>
+        <label className={labelClass}>Frequency <span className="text-red-500">*</span></label>
+        <input 
+          type="text" 
+          value={formData.frequency} 
+          onChange={(e) => setFormData({ ...formData, frequency: e.target.value })} 
+          placeholder="e.g., Daily, Weekly, Monthly" 
+          className={inputClass('frequency')} 
+        />
+        {errors.frequency && <p className="mt-1 text-xs text-red-500">{errors.frequency}</p>}
       </div>
 
-      <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-semibold rounded-lg shadow-lg transition-all disabled:opacity-50">
-        {isSubmitting ? 'Submitting...' : 'Submit Idea'}
-      </button>
+      {/* Action buttons */}
+      <div className="flex justify-end gap-3 pt-4">
+        <button 
+          type="button" 
+          className="px-5 py-2.5 text-sm font-medium text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          disabled={isSubmitting} 
+          className="px-5 py-2.5 text-sm font-medium text-white bg-primary-700 hover:bg-primary-800 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? 'Submitting...' : 'Submit Idea'}
+        </button>
+      </div>
     </form>
   );
 }

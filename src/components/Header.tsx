@@ -8,55 +8,50 @@ interface HeaderProps {
 
 export function Header({ currentView, onNavigate, isLoggedIn, userName, onLogout }: HeaderProps) {
   return (
-    <header className="bg-gradient-to-r from-primary-800 to-primary-700 text-white shadow-lg">
+    <header className="bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-primary-700 font-bold text-xl">AI</span>
-            </div>
-            <span className="font-semibold text-lg hidden sm:block">
-              Automation Idea Intake
-            </span>
+          {/* Logo */}
+          <div className="flex items-center">
+            <img 
+              src="/logo/madison88ltd_logo-removebg-preview.png" 
+              alt="Madison 88 Ltd" 
+              className="h-12 w-auto"
+            />
           </div>
 
-          <nav className="flex items-center gap-2">
+          {/* Navigation */}
+          <nav className="hidden sm:flex items-center gap-6">
             <button
               onClick={() => onNavigate('submit')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`text-sm font-medium transition-colors ${
                 currentView === 'submit'
-                  ? 'bg-white/20 text-white'
-                  : 'text-white/80 hover:bg-white/10 hover:text-white'
+                  ? 'text-primary-700'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               Submit Idea
             </button>
             <button
               onClick={() => onNavigate('admin')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`text-sm font-medium transition-colors ${
                 currentView === 'admin'
-                  ? 'bg-white/20 text-white'
-                  : 'text-white/80 hover:bg-white/10 hover:text-white'
+                  ? 'text-primary-700'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               Admin Dashboard
             </button>
           </nav>
 
+          {/* Right Side - Login/User */}
           <div className="flex items-center gap-3">
             {isLoggedIn ? (
               <>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-accent-blue rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {userName?.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <span className="text-sm hidden sm:block">{userName}</span>
-                </div>
+                <span className="text-sm text-gray-600 hidden sm:block">{userName}</span>
                 <button
                   onClick={onLogout}
-                  className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-sm transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   Logout
                 </button>
@@ -64,9 +59,9 @@ export function Header({ currentView, onNavigate, isLoggedIn, userName, onLogout
             ) : (
               <button
                 onClick={() => onNavigate('admin')}
-                className="px-4 py-2 bg-accent-blue hover:bg-accent-blue/90 rounded-lg text-sm font-medium transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white bg-primary-700 hover:bg-primary-800 rounded-md transition-colors"
               >
-                Admin Login
+                Login
               </button>
             )}
           </div>
