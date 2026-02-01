@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-import confetti from 'canvas-confetti';
 
 interface SuccessModalProps {
   isOpen: boolean;
@@ -9,43 +7,6 @@ interface SuccessModalProps {
 }
 
 export function SuccessModal({ isOpen, onClose, title, ideaId }: SuccessModalProps) {
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // Fire confetti from both sides
-    const end = Date.now() + 1500;
-    const colors = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
-
-    const frame = () => {
-      confetti({
-        particleCount: 3,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0, y: 0.6 },
-        colors,
-      });
-      confetti({
-        particleCount: 3,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1, y: 0.6 },
-        colors,
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    };
-    frame();
-
-    // Big burst in the center
-    confetti({
-      particleCount: 80,
-      spread: 100,
-      origin: { x: 0.5, y: 0.4 },
-      colors,
-    });
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
