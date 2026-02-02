@@ -9,7 +9,9 @@ export interface Idea {
   country: Country;
   expectedBenefit: ExpectedBenefit;
   frequency: string;
-  submitterName: string;
+  submitterFirstName: string;
+  submitterLastName: string;
+  submitterEmail: string;
   dateSubmitted: Date;
   status: IdeaStatus;
   // Current process fields

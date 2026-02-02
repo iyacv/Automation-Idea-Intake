@@ -59,7 +59,7 @@ export function LogsPage() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       if (!idea.title.toLowerCase().includes(query) && 
-          !idea.submitterName.toLowerCase().includes(query) &&
+          !(idea.submitterFirstName + ' ' + idea.submitterLastName).toLowerCase().includes(query) &&
           !idea.id.toLowerCase().includes(query)) {
         return false;
       }
@@ -229,7 +229,7 @@ export function LogsPage() {
                         {idea.id.substring(0, 15)}...
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-800 font-medium">
-                        {idea.submitterName}
+                        {idea.submitterFirstName} {idea.submitterLastName}
                       </td>
                       <td className="py-3 px-4 text-sm text-gray-600">
                         {idea.department}

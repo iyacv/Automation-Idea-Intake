@@ -8,7 +8,9 @@ interface IdeaFormProps {
 
 export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
   const [formData, setFormData] = useState({
-    submitterName: '',
+    submitterFirstName: '',
+    submitterLastName: '',
+    submitterEmail: '',
     department: '' as Department | '',
     country: '' as Country | '',
     title: '',
@@ -24,10 +26,17 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'edit' | 'preview'>('edit');
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!formData.submitterName.trim()) newErrors.submitterName = 'Your name is required';
+    if (!formData.submitterFirstName.trim()) newErrors.submitterFirstName = 'First name is required';
+    if (!formData.submitterLastName.trim()) newErrors.submitterLastName = 'Last name is required';
+    if (!formData.submitterEmail.trim()) {
+      newErrors.submitterEmail = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.submitterEmail)) {
+      newErrors.submitterEmail = 'Invalid email address';
+    }
     if (!formData.department) newErrors.department = 'Department is required';
     if (!formData.country) newErrors.country = 'Country is required';
     if (!formData.title.trim()) newErrors.title = 'Title is required';
@@ -39,9 +48,20 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePreview = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      // Scroll to first error
+      const firstError = Object.keys(errors)[0];
+      const element = document.getElementsByName(firstError)[0];
+      if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    setCurrentStep('preview');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
       const ideaService = new IdeaService();
@@ -52,18 +72,23 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
         country: formData.country as Country,
         expectedBenefit: formData.expectedBenefit as ExpectedBenefit,
         frequency: formData.frequency,
-        submitterName: formData.submitterName,
+        submitterFirstName: formData.submitterFirstName,
+        submitterLastName: formData.submitterLastName,
+        submitterEmail: formData.submitterEmail,
         currentProcessTitle: formData.currentProcessTitle,
         currentProcessProblem: formData.currentProcessProblem,
         isManualProcess: formData.isManualProcess,
         involvesMultipleDepartments: formData.involvesMultipleDepartments,
         involvedDepartments: formData.involvesMultipleDepartments ? formData.involvedDepartments : undefined
       });
+
+      // Reset form
       setFormData({
-        submitterName: '', department: '', country: '', title: '', description: '',
+        submitterFirstName: '', submitterLastName: '', submitterEmail: '', department: '', country: '', title: '', description: '',
         frequency: '', expectedBenefit: '', currentProcessTitle: '', currentProcessProblem: '',
         isManualProcess: false, involvesMultipleDepartments: false, involvedDepartments: []
       });
+      setCurrentStep('edit');
       onSubmitSuccess(idea);
     } finally {
       setIsSubmitting(false);
@@ -88,8 +113,159 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
 
   const labelClass = "block text-sm font-medium text-gray-700 mb-1.5";
 
+  if (currentStep === 'preview') {
+    return (
+      <div className="space-y-8 animate-fade-in">
+        <div className="bg-primary-50 border border-primary-100 rounded-xl p-6 mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+              <svg className="w-5 h-5 text-primary-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-primary-900">Review Your Idea</h2>
+              <p className="text-sm text-primary-700">Please review all information before final submission.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Submitter Info Preview */}
+          <div className="space-y-6">
+            <section className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Submitter Information</h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Full Name</p>
+                  <p className="text-sm font-semibold text-gray-800">{formData.submitterFirstName} {formData.submitterLastName}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Email Address</p>
+                  <p className="text-sm font-semibold text-gray-800">{formData.submitterEmail}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Department</p>
+                    <p className="text-sm font-semibold text-gray-800">{formData.department}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Country</p>
+                    <p className="text-sm font-semibold text-gray-800">{formData.country}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Process Details</h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Current Process</p>
+                  <p className="text-sm font-semibold text-gray-800">{formData.currentProcessTitle || 'Not specified'}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Manual Process?</p>
+                    <p className="text-sm font-semibold text-gray-800">{formData.isManualProcess ? 'Yes' : 'No'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Multi-Department?</p>
+                    <p className="text-sm font-semibold text-gray-800">{formData.involvesMultipleDepartments ? 'Yes' : 'No'}</p>
+                  </div>
+                </div>
+                {formData.involvesMultipleDepartments && formData.involvedDepartments.length > 0 && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Involved Departments</p>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      {formData.involvedDepartments.map(dept => (
+                        <span key={dept} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded uppercase">{dept}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          {/* Idea Info Preview */}
+          <div className="space-y-6">
+            <section className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm h-full">
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Idea Information</h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Title</p>
+                  <p className="text-sm font-bold text-primary-900 border-l-2 border-primary-500 pl-3 py-1 bg-primary-50/30 rounded-r-lg">{formData.title}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Description</p>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{formData.description}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Frequency</p>
+                    <p className="text-sm font-semibold text-gray-800">{formData.frequency}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-0.5">Expected Benefit</p>
+                    <span className="inline-flex px-2 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-md">{formData.expectedBenefit}</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center pt-8 border-t border-gray-100 mt-8">
+          <button
+            type="button"
+            onClick={() => setCurrentStep('edit')}
+            className="flex items-center gap-2 px-6 py-3 text-sm font-bold text-gray-600 hover:text-primary-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to Edit
+          </button>
+          
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={handleSubmit}
+            className="px-10 py-3.5 bg-gradient-to-r from-primary-700 to-primary-800 text-white font-bold rounded-xl shadow-lg hover:shadow-primary-200 hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 flex items-center gap-3"
+          >
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              </>
+            ) : (
+              <>
+                Confirm & Submit Idea
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                </svg>
+              </>
+            )}
+          </button>
+        </div>
+
+        <p className="text-center text-[11px] text-gray-400 max-w-md mx-auto">
+          By submitting, you agree that your idea will be reviewed by the IT Automation Team. 
+          A confirmation email will be sent to <span className="font-bold text-gray-500">{formData.submitterEmail}</span>.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handlePreview} className="space-y-8">
       {/* Section: Submitter Details */}
       <section>
         <div className="flex items-center gap-2.5 mb-5">
@@ -105,22 +281,57 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
         </div>
 
         <div className="space-y-5 pl-[42px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className={labelClass}>First Name <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                name="submitterFirstName"
+                value={formData.submitterFirstName}
+                onChange={(e) => setFormData({ ...formData, submitterFirstName: e.target.value })}
+                placeholder="Enter your first name"
+                className={inputClass('submitterFirstName')}
+              />
+              {errors.submitterFirstName && <p className="mt-1.5 text-xs text-red-500">{errors.submitterFirstName}</p>}
+            </div>
+            <div>
+              <label className={labelClass}>Last Name <span className="text-red-500">*</span></label>
+              <input
+                type="text"
+                name="submitterLastName"
+                value={formData.submitterLastName}
+                onChange={(e) => setFormData({ ...formData, submitterLastName: e.target.value })}
+                placeholder="Enter your last name"
+                className={inputClass('submitterLastName')}
+              />
+              {errors.submitterLastName && <p className="mt-1.5 text-xs text-red-500">{errors.submitterLastName}</p>}
+            </div>
+          </div>
+
           <div>
-            <label className={labelClass}>Your Name <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              value={formData.submitterName}
-              onChange={(e) => setFormData({ ...formData, submitterName: e.target.value })}
-              placeholder="Enter your full name"
-              className={inputClass('submitterName')}
-            />
-            {errors.submitterName && <p className="mt-1.5 text-xs text-red-500">{errors.submitterName}</p>}
+            <label className={labelClass}>Email Address <span className="text-red-500">*</span></label>
+            <div className="relative">
+              <input
+                type="email"
+                name="submitterEmail"
+                value={formData.submitterEmail}
+                onChange={(e) => setFormData({ ...formData, submitterEmail: e.target.value })}
+                placeholder="you@company.com"
+                className={`${inputClass('submitterEmail')} pl-10`}
+              />
+              <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <p className="mt-1 text-[10px] text-gray-400">Reference ID and updates will be sent to this email</p>
+            {errors.submitterEmail && <p className="mt-1.5 text-xs text-red-500">{errors.submitterEmail}</p>}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className={labelClass}>Department <span className="text-red-500">*</span></label>
               <select
+                name="department"
                 value={formData.department}
                 onChange={(e) => setFormData({ ...formData, department: e.target.value as Department })}
                 className={inputClass('department')}
@@ -134,6 +345,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
             <div>
               <label className={labelClass}>Country <span className="text-red-500">*</span></label>
               <select
+                name="country"
                 value={formData.country}
                 onChange={(e) => setFormData({ ...formData, country: e.target.value as Country })}
                 className={inputClass('country')}
@@ -168,6 +380,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
             <label className={labelClass}>Idea Title <span className="text-red-500">*</span></label>
             <input
               type="text"
+              name="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Enter a clear, concise title for your idea"
@@ -179,6 +392,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
           <div>
             <label className={labelClass}>Description <span className="text-red-500">*</span></label>
             <textarea
+              name="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Describe your idea in detail — what problem does it solve and how?"
@@ -191,6 +405,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
           <div>
             <label className={labelClass}>Frequency <span className="text-red-500">*</span></label>
             <select
+              name="frequency"
               value={formData.frequency}
               onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
               className={inputClass('frequency')}
@@ -346,6 +561,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
         <div className="pl-[42px]">
           <label className={labelClass}>Expected Benefit <span className="text-red-500">*</span></label>
           <select
+            name="expectedBenefit"
             value={formData.expectedBenefit}
             onChange={(e) => setFormData({ ...formData, expectedBenefit: e.target.value as ExpectedBenefit })}
             className={inputClass('expectedBenefit')}
@@ -368,10 +584,12 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
         </button>
         <button
           type="submit"
-          disabled={isSubmitting}
-          className="px-8 py-2.5 text-sm font-medium text-white bg-primary-700 hover:bg-primary-800 rounded-lg transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-8 py-2.5 text-sm font-bold text-white bg-primary-700 hover:bg-primary-800 rounded-lg transition-all shadow-md active:scale-[0.98] flex items-center gap-2"
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Idea'}
+          Review Idea
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
 
@@ -400,7 +618,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
                   type="button"
                   onClick={() => {
                     setFormData({
-                      submitterName: '', department: '', country: '', title: '', description: '',
+                      submitterFirstName: '', submitterLastName: '', submitterEmail: '', department: '', country: '', title: '', description: '',
                       frequency: '', expectedBenefit: '', currentProcessTitle: '', currentProcessProblem: '',
                       isManualProcess: false, involvesMultipleDepartments: false, involvedDepartments: []
                     });

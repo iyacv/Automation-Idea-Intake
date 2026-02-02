@@ -51,7 +51,6 @@ export function Header({ currentView, onNavigate, isLoggedIn, userName, onLogout
                 className="h-10 w-auto brightness-0 invert"
               />
               <div className="hidden sm:block border-l border-primary-600 pl-3">
-                <p className="text-[10px] font-semibold text-primary-300 uppercase tracking-widest">Automation</p>
                 <p className="text-sm font-bold text-white -mt-0.5">Idea Intake</p>
               </div>
             </div>
@@ -90,25 +89,27 @@ export function Header({ currentView, onNavigate, isLoggedIn, userName, onLogout
       <div className="bg-primary-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex gap-1">
-            {navItems.map((item) => {
-              const isActive = currentView === item.key;
-              return (
-                <button
-                  key={item.key}
-                  onClick={() => onNavigate(item.key)}
-                  className={`
-                    flex items-center gap-2 px-5 py-3 text-sm font-medium rounded-t-lg transition-all relative
-                    ${isActive
-                      ? 'bg-[#f0f4f8] text-primary-800'
-                      : 'text-white/70 hover:text-white hover:bg-white/10'
-                    }
-                  `}
-                >
-                  {item.icon}
-                  <span className="hidden sm:inline">{item.label}</span>
-                </button>
-              );
-            })}
+            {navItems
+              .filter(item => isLoggedIn || item.key === 'submit')
+              .map((item) => {
+                const isActive = currentView === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => onNavigate(item.key)}
+                    className={`
+                      flex items-center gap-2 px-5 py-3 text-sm font-medium rounded-t-lg transition-all relative
+                      ${isActive
+                        ? 'bg-[#f0f4f8] text-primary-800'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                      }
+                    `}
+                  >
+                    {item.icon}
+                    <span className="hidden sm:inline">{item.label}</span>
+                  </button>
+                );
+              })}
           </nav>
         </div>
       </div>

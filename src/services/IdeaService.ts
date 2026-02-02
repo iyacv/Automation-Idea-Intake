@@ -2,7 +2,12 @@ import { Idea, IdeaStatus, Department, ExpectedBenefit, Country } from '../model
 
 export class IdeaService {
   private generateId(): string {
-    return `idea_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Avoid ambiguous characters
+    let randomPart = '';
+    for (let i = 0; i < 5; i++) {
+        randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `AIT-${randomPart}`;
   }
 
   submitIdea(data: {
@@ -12,7 +17,9 @@ export class IdeaService {
     country: Country;
     expectedBenefit: ExpectedBenefit;
     frequency: string;
-    submitterName: string;
+    submitterFirstName: string;
+    submitterLastName: string;
+    submitterEmail: string;
     currentProcessTitle?: string;
     currentProcessProblem?: string;
     isManualProcess?: boolean;

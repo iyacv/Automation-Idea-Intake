@@ -1,12 +1,22 @@
 
+import { useState } from 'react';
+
 interface SuccessModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   ideaId: string;
+  submitterEmail?: string;
 }
 
-export function SuccessModal({ isOpen, onClose, title, ideaId }: SuccessModalProps) {
+export function SuccessModal({ isOpen, onClose, title, ideaId, submitterEmail }: SuccessModalProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(ideaId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   if (!isOpen) return null;
 
@@ -36,17 +46,43 @@ export function SuccessModal({ isOpen, onClose, title, ideaId }: SuccessModalPro
         {/* Content */}
         <div className="px-6 pb-6 -mt-4">
           <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 mb-5">
-            <p className="text-sm text-gray-500 mb-3 text-center">
-              Thank you for your submission! The IT team will review your idea and get back to you.
-            </p>
+            <div className="text-center mb-4">
+              <p className="text-sm font-semibold text-gray-800">Thank you for your submission!</p>
+              <p className="text-xs text-gray-500 mt-1">
+                A confirmation email has been sent to <span className="text-primary-600 font-bold">{submitterEmail || 'your email'}</span>.
+              </p>
+            </div>
 
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-xs text-gray-400 uppercase tracking-wider font-semibold mb-1">Submitted Idea</p>
-              <p className="font-semibold text-gray-800 text-sm">{title}</p>
-              <div className="flex items-center gap-1.5 mt-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <p className="text-xs text-gray-400">Reference: {ideaId.substring(0, 20)}...</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">REFERENCE ID</p>
+              <div className="flex items-center justify-between gap-2 mb-3 bg-white border border-gray-200 rounded-lg px-3 py-2">
+                <code className="text-sm font-bold text-gray-900">{ideaId}</code>
+                <button 
+                  onClick={handleCopy}
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
+                    copied ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {copied ? (
+                    <>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      Copy ID
+                    </>
+                  )}
+                </button>
               </div>
+
+              <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">IDEA TITLE</p>
+              <p className="font-semibold text-gray-800 text-sm">{title}</p>
             </div>
           </div>
 

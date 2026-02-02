@@ -49,7 +49,13 @@ export function SubmitPage() {
       </div>
 
       {successModal.idea && (
-        <SuccessModal isOpen={successModal.isOpen} onClose={() => setSuccessModal({ isOpen: false })} title={successModal.idea.title} ideaId={successModal.idea.id} />
+        <SuccessModal 
+          isOpen={successModal.isOpen} 
+          onClose={() => setSuccessModal({ isOpen: false })} 
+          title={successModal.idea.title} 
+          ideaId={successModal.idea.id} 
+          submitterEmail={successModal.idea.submitterEmail}
+        />
       )}
     </div>
   );
