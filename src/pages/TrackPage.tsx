@@ -10,10 +10,20 @@ export function TrackPage() {
     status: '' as IdeaStatus | '',
     department: '' as Department | ''
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const ideaService = new IdeaService();
-    setIdeas(ideaService.getAllIdeas());
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        const ideaService = new IdeaService();
+        const allIdeas = await ideaService.getAllIdeas();
+        setIdeas(allIdeas);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -54,14 +64,14 @@ export function TrackPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-6">
           <div className="bg-primary-900 px-8 py-6 text-white">
-            <h1 className="text-2xl font-bold">Track Your Idea</h1>
-            <p className="text-primary-200 text-sm mt-1">Search and monitor the status of your submitted ideas.</p>
+            <h1 className="text-2xl font-semibold">Track Your Idea</h1>
+            <p className="text-theme-200 text-sm mt-1">Search and monitor the status of your submitted ideas.</p>
           </div>
 
           <div className="p-6 bg-gray-50 border-b border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Search Reference ID</label>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Search Reference ID</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -77,7 +87,7 @@ export function TrackPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Department</label>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Department</label>
                 <select
                   value={filters.department}
                   onChange={(e) => setFilters({ ...filters, department: e.target.value as Department | '' })}
@@ -89,7 +99,7 @@ export function TrackPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Status</label>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Status</label>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters({ ...filters, status: e.target.value as IdeaStatus | '' })}
@@ -105,56 +115,63 @@ export function TrackPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-white border-b border-gray-100">
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Date & Time</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Reference ID</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Idea Title</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Department</th>
-                  <th className="px-6 py-4 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {filteredIdeas.length > 0 ? (
-                  filteredIdeas.map((idea) => (
-                    <tr key={idea.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
-                        {formatDate(idea.dateSubmitted)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="font-mono text-xs font-bold text-primary-700 bg-primary-50 px-2 py-1 rounded">
-                          {idea.id}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-sm font-semibold text-gray-800 line-clamp-1">{idea.title}</p>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-xs font-medium text-gray-600">{idea.department}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center">
-                        <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${STATUS_COLORS[idea.status]}`}>
-                          {idea.status}
-                        </span>
+          <div className="overflow-x-auto min-h-[400px]">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
+                <p className="text-sm text-gray-400 font-medium">Tracking your submissions...</p>
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-white border-b border-gray-100">
+                    <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Date & Time</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Reference ID</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Idea Title</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Department</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filteredIdeas.length > 0 ? (
+                    filteredIdeas.map((idea) => (
+                      <tr key={idea.id} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
+                          {formatDate(idea.dateSubmitted)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-xs font-semibold text-theme-700 bg-primary-50 px-2 py-1 rounded">
+                            {idea.id}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <p className="text-sm font-medium text-gray-800 line-clamp-1">{idea.title}</p>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-xs font-medium text-gray-600">{idea.department}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${STATUS_COLORS[idea.status]}`}>
+                            {idea.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                        <div className="flex flex-col items-center gap-2">
+                          <svg className="w-8 h-8 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <p className="text-sm">No matching ideas found.</p>
+                        </div>
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
-                      <div className="flex flex-col items-center gap-2">
-                        <svg className="w-8 h-8 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p className="text-sm">No matching ideas found.</p>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

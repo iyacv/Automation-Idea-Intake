@@ -15,11 +15,9 @@ export class WorkflowService {
   }
 
   updateWorkflowStatus(_ideaId: string, _status: WorkflowStatus, _remarks: string): void {
-    // No-op until Supabase is connected
   }
 
   assignReviewer(_ideaId: string, _reviewerName: string): void {
-    // No-op until Supabase is connected
   }
 
   getWorkflowByIdeaId(_ideaId: string): Workflow | undefined {

@@ -78,7 +78,7 @@ export function Header({ currentView, onNavigate, isLoggedIn, userName, onLogout
                 className="h-10 w-auto brightness-0 invert"
               />
               <div className="hidden sm:block border-l border-primary-600 pl-3">
-                <p className="text-sm font-bold text-white -mt-0.5">Idea Intake</p>
+                <p className="text-sm font-semibold text-white -mt-0.5">Idea Intake</p>
               </div>
             </div>
 
@@ -88,7 +88,7 @@ export function Header({ currentView, onNavigate, isLoggedIn, userName, onLogout
                 <>
                   <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary-700/50 rounded-lg">
                     <div className="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center">
-                      <span className="text-xs font-bold text-white">{userName?.charAt(0) || 'U'}</span>
+                      <span className="text-xs font-semibold text-white">{userName?.charAt(0) || 'U'}</span>
                     </div>
                     <span className="text-sm font-medium text-primary-100">{userName}</span>
                   </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Idea, IdeaStatus, DEPARTMENTS } from '../models';
+import { Idea, IdeaStatus, DEPARTMENTS, COUNTRIES } from '../models';
 import { IdeaService } from '../services';
 import { AuditService } from '../services/AuditService';
 import { AuditLog } from '../models/AuditLog';
@@ -11,17 +11,28 @@ export function LogsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<IdeaStatus | 'All'>('All');
   const [departmentFilter, setDepartmentFilter] = useState<string>('All');
+  const [countryFilter, setCountryFilter] = useState<string>('All');
   const [dateRange, setDateRange] = useState<'all' | 'today' | 'week' | 'month'>('all');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadData();
   }, []);
 
-  const loadData = () => {
-    const ideaService = new IdeaService();
-    const auditService = new AuditService();
-    setIdeas(ideaService.getAllIdeas());
-    setAuditLogs(auditService.getAllLogs());
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const ideaService = new IdeaService();
+      const auditService = new AuditService();
+      const [allIdeas, allLogs] = await Promise.all([
+        ideaService.getAllIdeas(),
+        auditService.getAllLogs()
+      ]);
+      setIdeas(allIdeas);
+      setAuditLogs(allLogs);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getLogsForIdea = (ideaId: string) => {
@@ -72,6 +83,11 @@ export function LogsPage() {
     
     // Department filter
     if (departmentFilter !== 'All' && idea.department !== departmentFilter) {
+      return false;
+    }
+
+    // Country filter
+    if (countryFilter !== 'All' && idea.country !== countryFilter) {
       return false;
     }
     
@@ -127,6 +143,21 @@ export function LogsPage() {
                 <option value="today">Today</option>
                 <option value="week">Last 7 Days</option>
                 <option value="month">Last 30 Days</option>
+              </select>
+            </div>
+
+            {/* Country Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">Region</label>
+              <select
+                value={countryFilter}
+                onChange={(e) => setCountryFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-primary-600 focus:outline-none"
+              >
+                <option value="All">All Regions</option>
+                {COUNTRIES.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
               </select>
             </div>
 
@@ -194,8 +225,14 @@ export function LogsPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden min-h-[400px]">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
+              <p className="text-sm text-gray-400 font-medium">Loading activity logs...</p>
+            </div>
+          ) : (
+            <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date & Time</th>
@@ -340,6 +377,7 @@ export function LogsPage() {
               )}
             </tbody>
           </table>
+          )}
         </div>
 
         {/* Summary */}

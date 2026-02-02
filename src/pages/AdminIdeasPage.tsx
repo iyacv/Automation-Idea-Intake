@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Idea, IdeaStatus, Department, DEPARTMENTS } from '../models';
+import { Idea, IdeaStatus, Department, DEPARTMENTS, Country, COUNTRIES } from '../models';
 import { IdeaService } from '../services';
 import { IdeaTable, IdeaDetailModal } from '../components';
 
@@ -10,14 +10,23 @@ export function AdminIdeasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     status: '' as IdeaStatus | '',
-    department: '' as Department | ''
+    department: '' as Department | '',
+    country: '' as Country | ''
   });
 
-  const loadData = () => {
-    const ideaService = new IdeaService();
-    setIdeas(ideaService.getAllIdeas().sort((a, b) => 
-      new Date(b.dateSubmitted).getTime() - new Date(a.dateSubmitted).getTime()
-    ));
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const ideaService = new IdeaService();
+      const allIdeas = await ideaService.getAllIdeas();
+      setIdeas(allIdeas.sort((a, b) => 
+        new Date(b.dateSubmitted).getTime() - new Date(a.dateSubmitted).getTime()
+      ));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -47,16 +56,21 @@ export function AdminIdeasPage() {
       result = result.filter(idea => idea.department === filters.department);
     }
 
+    // Country Filter
+    if (filters.country) {
+      result = result.filter(idea => idea.country === filters.country);
+    }
+
     setFilteredIdeas(result);
   }, [searchTerm, filters, ideas]);
 
-  const handleUpdateStatus = (
+  const handleUpdateStatus = async (
     idea: Idea, 
     status: IdeaStatus, 
     reviewData: { classification?: string; priority?: number; remarks?: string }
   ) => {
     const ideaService = new IdeaService();
-    ideaService.updateIdeaStatus(idea.id, status, reviewData);
+    await ideaService.updateIdeaStatus(idea.id, status, reviewData);
     loadData();
     setSelectedIdea(null);
   };
@@ -86,6 +100,15 @@ export function AdminIdeasPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <select
+              value={filters.country}
+              onChange={(e) => setFilters({ ...filters, country: e.target.value as Country | '' })}
+              className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500/20"
+            >
+              <option value="">All Regions</option>
+              {COUNTRIES.map(country => <option key={country} value={country}>{country}</option>)}
+            </select>
+
             <select
               value={filters.department}
               onChange={(e) => setFilters({ ...filters, department: e.target.value as Department | '' })}
@@ -121,19 +144,26 @@ export function AdminIdeasPage() {
 
         {/* Results Counter */}
         <div className="mb-4 flex items-center gap-2">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Results: {filteredIdeas.length} ideas</span>
-          { (searchTerm || filters.status || filters.department) && (
+          <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Results: {filteredIdeas.length} ideas</span>
+          { (searchTerm || filters.status || filters.department || filters.country) && (
             <button 
-              onClick={() => { setSearchTerm(''); setFilters({ status: '', department: '' }); }}
-              className="text-xs font-bold text-primary-600 hover:underline"
+              onClick={() => { setSearchTerm(''); setFilters({ status: '', department: '', country: '' }); }}
+              className="text-xs font-semibold text-primary-600 hover:underline"
             >
               Clear Filters
             </button>
           )}
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <IdeaTable ideas={filteredIdeas} onViewDetails={setSelectedIdea} />
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden min-h-[400px]">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <div className="w-12 h-12 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
+              <p className="text-sm text-gray-400 font-medium">Loading submissions...</p>
+            </div>
+          ) : (
+            <IdeaTable ideas={filteredIdeas} onViewDetails={setSelectedIdea} />
+          )}
         </div>
       </div>
 

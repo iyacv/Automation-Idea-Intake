@@ -1,8 +1,9 @@
+import { supabase } from '../lib/supabase';
 import { Idea, IdeaStatus, Department, ExpectedBenefit, Country } from '../models';
 
 export class IdeaService {
   private generateId(): string {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Avoid ambiguous characters
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let randomPart = '';
     for (let i = 0; i < 5; i++) {
         randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -10,9 +11,7 @@ export class IdeaService {
     return `AIT-${randomPart}`;
   }
 
-  private static ideas: Idea[] = [];
-
-  submitIdea(data: {
+  async submitIdea(data: {
     title: string;
     description: string;
     department: Department;
@@ -27,27 +26,74 @@ export class IdeaService {
     isManualProcess?: boolean;
     involvesMultipleDepartments?: boolean;
     involvedDepartments?: Department[];
-  }): Idea {
-    const idea: Idea = {
-      id: this.generateId(),
-      ...data,
-      dateSubmitted: new Date(),
+  }): Promise<Idea | null> {
+    const id = this.generateId();
+    const insertData = {
+      idea_id: id,
+      title: data.title,
+      idea_description: data.description,
+      department: data.department,
+      country: data.country,
+      expected_benefit: data.expectedBenefit,
+      frequency: data.frequency,
+      submitter_name: `${data.submitterFirstName} ${data.submitterLastName}`,
+      submitter_email: data.submitterEmail,
+      current_process: data.currentProcessTitle,
+      current_process_problem: data.currentProcessProblem,
+      is_manual_process: data.isManualProcess,
+      involves_multiple_departments: data.involvesMultipleDepartments,
+      involved_departments: data.involvedDepartments,
       status: 'Submitted'
     };
 
-    IdeaService.ideas.push(idea);
-    return idea;
+    console.log('Attempting to insert into Supabase:', insertData);
+
+    const { data: idea, error } = await supabase
+      .from('ideas')
+      .insert(insertData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase Error during insert:', error);
+      alert(`Submission failed: ${error.message}. Please check your database columns and RLS policies.`);
+      return null;
+    }
+
+    console.log('Successfully submitted:', idea);
+    return this.mapToIdea(idea);
   }
 
-  getAllIdeas(): Idea[] {
-    return [...IdeaService.ideas];
+  async getAllIdeas(): Promise<Idea[]> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select('*')
+      .order('date_submitted', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching ideas:', error);
+      return [];
+    }
+
+    return data.map(item => this.mapToIdea(item));
   }
 
-  getIdeaById(id: string): Idea | undefined {
-    return IdeaService.ideas.find(i => i.id === id);
+  async getIdeaById(id: string): Promise<Idea | null> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select('*')
+      .eq('idea_id', id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching idea:', error);
+      return null;
+    }
+
+    return this.mapToIdea(data);
   }
 
-  updateIdeaStatus(
+  async updateIdeaStatus(
     id: string,
     status: IdeaStatus,
     reviewData: {
@@ -55,22 +101,40 @@ export class IdeaService {
       priority?: number;
       remarks?: string;
     }
-  ): void {
-    const index = IdeaService.ideas.findIndex(i => i.id === id);
-    if (index !== -1) {
-      IdeaService.ideas[index] = {
-        ...IdeaService.ideas[index],
+  ): Promise<boolean> {
+    const { error } = await supabase
+      .from('ideas')
+      .update({
         status,
         classification: reviewData.classification,
         priority: reviewData.priority,
-        adminRemarks: reviewData.remarks
-      };
+        admin_remarks: reviewData.remarks
+      })
+      .eq('idea_id', id);
+
+    if (error) {
+      console.error('Error updating idea status:', error);
+      return false;
     }
+
+    return true;
   }
 
-  getStatistics() {
+  async getStatistics(filterCountry?: string) {
+    const query = supabase.from('ideas').select('*');
+    if (filterCountry) {
+      query.eq('country', filterCountry);
+    }
+
+    const { data: filteredIdeas, error } = await query;
+
+    if (error) {
+      console.error('Error fetching statistics:', error);
+      return null;
+    }
+
     const stats = {
-      total: IdeaService.ideas.length,
+      total: filteredIdeas.length,
       byStatus: {
         Submitted: 0,
         'Under Review': 0,
@@ -92,9 +156,13 @@ export class IdeaService {
       }
     };
 
-    IdeaService.ideas.forEach(idea => {
+    filteredIdeas.forEach((item: any) => {
+      const idea = this.mapToIdea(item);
       // By Status
-      stats.byStatus[idea.status]++;
+      const statusKey = idea.status as keyof typeof stats.byStatus;
+      if (stats.byStatus.hasOwnProperty(statusKey)) {
+        stats.byStatus[statusKey]++;
+      }
 
       // By Department
       stats.byDepartment[idea.department] = (stats.byDepartment[idea.department] || 0) + 1;
@@ -104,7 +172,9 @@ export class IdeaService {
 
       // By Classification
       if (idea.classification) {
-        stats.classificationStats[idea.classification as keyof typeof stats.classificationStats]++;
+        if (stats.classificationStats.hasOwnProperty(idea.classification)) {
+          stats.classificationStats[idea.classification as keyof typeof stats.classificationStats]++;
+        }
       }
 
       // By Priority
@@ -117,5 +187,32 @@ export class IdeaService {
     });
 
     return stats;
+  }
+
+  private mapToIdea(item: any): Idea {
+    const nameParts = item.submitter_name?.split(' ') || ['', ''];
+    
+    return {
+      id: item.idea_id,
+      title: item.title,
+      description: item.idea_description, // Map from image name
+      department: item.department,
+      country: item.country || 'Unknown', // Default if missing in DB
+      expectedBenefit: item.expected_benefit,
+      frequency: item.frequency,
+      submitterFirstName: nameParts[0],
+      submitterLastName: nameParts.slice(1).join(' '),
+      submitterEmail: item.submitter_email || '',
+      dateSubmitted: new Date(item.date_submitted),
+      status: item.status || 'Submitted',
+      currentProcessTitle: item.current_process, // Map from image name
+      currentProcessProblem: item.current_process_problem,
+      isManualProcess: item.is_manual_process,
+      involvesMultipleDepartments: item.involves_multiple_departments,
+      involvedDepartments: item.involved_departments || [],
+      classification: item.classification,
+      priority: item.priority,
+      adminRemarks: item.admin_remarks
+    };
   }
 }

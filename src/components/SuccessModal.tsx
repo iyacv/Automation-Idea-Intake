@@ -39,7 +39,7 @@ export function SuccessModal({ isOpen, onClose, title, ideaId, submitterEmail }:
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-white">Idea Submitted!</h2>
+            <h2 className="text-2xl font-semibold text-white">Idea Submitted!</h2>
           </div>
         </div>
 
@@ -49,17 +49,17 @@ export function SuccessModal({ isOpen, onClose, title, ideaId, submitterEmail }:
             <div className="text-center mb-4">
               <p className="text-sm font-semibold text-gray-800">Thank you for your submission!</p>
               <p className="text-xs text-gray-500 mt-1">
-                A confirmation email has been sent to <span className="text-primary-600 font-bold">{submitterEmail || 'your email'}</span>.
+                A confirmation email has been sent to <span className="text-primary-600 font-semibold">{submitterEmail || 'your email'}</span>.
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-4">
-              <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">REFERENCE ID</p>
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1.5">REFERENCE ID</p>
               <div className="flex items-center justify-between gap-2 mb-3 bg-white border border-gray-200 rounded-lg px-3 py-2">
-                <code className="text-sm font-bold text-gray-900">{ideaId}</code>
+                <span className="text-sm font-semibold text-gray-900">{ideaId}</span>
                 <button 
                   onClick={handleCopy}
-                  className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-semibold transition-all ${
                     copied ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -81,7 +81,7 @@ export function SuccessModal({ isOpen, onClose, title, ideaId, submitterEmail }:
                 </button>
               </div>
 
-              <p className="text-xs text-gray-400 uppercase tracking-wider font-bold mb-1">IDEA TITLE</p>
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1.5">IDEA TITLE</p>
               <p className="font-semibold text-gray-800 text-sm">{title}</p>
             </div>
           </div>

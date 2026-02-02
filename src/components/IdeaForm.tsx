@@ -65,7 +65,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
     setIsSubmitting(true);
     try {
       const ideaService = new IdeaService();
-      const idea = ideaService.submitIdea({
+      const idea = await ideaService.submitIdea({
         title: formData.title,
         description: formData.description,
         department: formData.department as Department,
@@ -82,14 +82,18 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
         involvedDepartments: formData.involvesMultipleDepartments ? formData.involvedDepartments : undefined
       });
 
-      // Reset form
-      setFormData({
-        submitterFirstName: '', submitterLastName: '', submitterEmail: '', department: '', country: '', title: '', description: '',
-        frequency: '', expectedBenefit: '', currentProcessTitle: '', currentProcessProblem: '',
-        isManualProcess: false, involvesMultipleDepartments: false, involvedDepartments: []
-      });
-      setCurrentStep('edit');
-      onSubmitSuccess(idea);
+      if (idea) {
+        // Reset form
+        setFormData({
+          submitterFirstName: '', submitterLastName: '', submitterEmail: '', department: '', country: '', title: '', description: '',
+          frequency: '', expectedBenefit: '', currentProcessTitle: '', currentProcessProblem: '',
+          isManualProcess: false, involvesMultipleDepartments: false, involvedDepartments: []
+        });
+        setCurrentStep('edit');
+        onSubmitSuccess(idea);
+      }
+    } catch (err) {
+      console.error('Failed to submit idea:', err);
     } finally {
       setIsSubmitting(false);
     }
