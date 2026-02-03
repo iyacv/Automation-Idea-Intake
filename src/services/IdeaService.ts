@@ -207,8 +207,8 @@ export class IdeaService {
         }
       }
 
-      // By Priority
-      if (idea.priority) {
+      // By Priority - Only count for Approved ideas
+      if (idea.priority && idea.status === 'Approved') {
         if (idea.priority >= 9) stats.evaluationStats.Critical++;
         else if (idea.priority >= 7) stats.evaluationStats.High++;
         else if (idea.priority >= 4) stats.evaluationStats.Medium++;

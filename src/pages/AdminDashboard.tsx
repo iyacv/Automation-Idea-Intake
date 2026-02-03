@@ -102,9 +102,10 @@ export function AdminDashboard({ onLoginSuccess, onNavigate, user }: AdminDashbo
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <StatCard title="Total Ideas" value={stats?.total || 0} color="darkblue" icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>} />
-          <StatCard title="Pending Review" value={(stats?.byStatus.Submitted || 0) + (stats?.byStatus['Under Review'] || 0)} color="slate" icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          <StatCard title="Overall" value={stats?.total || 0} color="darkblue" icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>} />
+          <StatCard title="Submitted Ideas" value={stats?.byStatus.Submitted || 0} color="blue" icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20" /></svg>} />
+          <StatCard title="Under Review" value={stats?.byStatus['Under Review'] || 0} color="slate" icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
           <StatCard title="Approved" value={stats?.byStatus.Approved || 0} color="green" icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
           <StatCard title="Rejected" value={stats?.byStatus.Rejected || 0} color="red" icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>} />
         </div>
@@ -124,24 +125,25 @@ export function AdminDashboard({ onLoginSuccess, onNavigate, user }: AdminDashbo
           <ChartCard title="Idea Priority Breakdown">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {['Critical', 'High', 'Medium', 'Low'].map((priority) => {
-                const count = stats?.evaluationStats[priority as keyof typeof stats.evaluationStats] || 0;
-                const percentage = stats && stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
-                const colors: Record<string, string> = { Critical: 'bg-red-800', High: 'bg-amber-800', Medium: 'bg-blue-800', Low: 'bg-slate-600' };
-                return (
-                  <div key={priority} className="flex flex-col gap-2 p-3 rounded-lg bg-gray-50/50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2.5 h-2.5 rounded-full ${colors[priority]}`}></span>
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{priority}</span>
+                    const count = stats?.evaluationStats[priority as keyof typeof stats.evaluationStats] || 0;
+                    const approvedCount = stats?.byStatus.Approved || 0;
+                    const percentage = approvedCount > 0 ? Math.round((count / approvedCount) * 100) : 0;
+                    const colors: Record<string, string> = { Critical: 'bg-red-800', High: 'bg-amber-800', Medium: 'bg-blue-800', Low: 'bg-slate-600' };
+                    return (
+                      <div key={priority} className="flex flex-col gap-2 p-3 rounded-lg bg-gray-50/50">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${colors[priority]}`}></span>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{priority}</span>
+                          </div>
+                          <span className="text-sm font-bold text-gray-800">{count}</span>
+                        </div>
+                        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full ${colors[priority]}`} style={{ width: `${percentage}%` }}></div>
+                        </div>
+                        <p className="text-[10px] text-gray-400 font-medium">{percentage}% of approved</p>
                       </div>
-                      <span className="text-sm font-bold text-gray-800">{count}</span>
-                    </div>
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${colors[priority]}`} style={{ width: `${percentage}%` }}></div>
-                    </div>
-                    <p className="text-[10px] text-gray-400 font-medium">{percentage}% of total</p>
-                  </div>
-                );
+                    );
               })}
             </div>
           </ChartCard>

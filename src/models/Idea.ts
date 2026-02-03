@@ -42,11 +42,8 @@ export type Department =
 
 // Expected Benefit 
 export type ExpectedBenefit =
-  | 'Time Savings'
-  | 'Cost Reduction'
-  | 'Quality Improvement'
-  | 'Customer Satisfaction'
-  | 'Employee Satisfaction';
+  | 'Automation'
+  | 'Process Improvement';
 
 // Idea Status (removed Rerouted)
 export type IdeaStatus = 
@@ -84,7 +81,7 @@ export const DEPARTMENTS: Department[] = [
 ];
 
 export const EXPECTED_BENEFITS: ExpectedBenefit[] = [
-  'Time Savings', 'Cost Reduction', 'Quality Improvement', 'Customer Satisfaction', 'Employee Satisfaction'
+  'Automation', 'Process Improvement'
 ];
 
 export const STATUS_COLORS: Record<IdeaStatus, string> = {

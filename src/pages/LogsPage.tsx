@@ -18,7 +18,7 @@ export function LogsPage({ user }: LogsPageProps) {
   const [departmentFilter, setDepartmentFilter] = useState<string>('All');
   const [countryFilter, setCountryFilter] = useState<string>('All');
   const [priorityFilter, setPriorityFilter] = useState<PriorityLabel | 'All'>('All');
-  const [dateRange, setDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all');
+  const [dateRange] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all');
   const [monthFilter, setMonthFilter] = useState<string>('All');
   const [yearFilter, setYearFilter] = useState<string>('All');
   const [isLoading, setIsLoading] = useState(true);
@@ -101,9 +101,11 @@ export function LogsPage({ user }: LogsPageProps) {
       return false;
     }
 
-    // Priority filter
-    if (priorityFilter !== 'All' && getPriorityLabel(idea.priority) !== priorityFilter) {
-      return false;
+    // Priority filter - Only show Approved ideas when filtering by priority
+    if (priorityFilter !== 'All') {
+      if (idea.status !== 'Approved' || getPriorityLabel(idea.priority) !== priorityFilter) {
+        return false;
+      }
     }
     
     // Date range filter
@@ -157,51 +159,86 @@ export function LogsPage({ user }: LogsPageProps) {
 
         {/* Filters & Search Row */}
         <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              {/* Status Filter for the List */}
-              <div className="flex items-center gap-2">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-tight">Show</label>
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Status Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as IdeaStatus | 'All')}
+                className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-primary-100 outline-none transition-all"
+              >
+                <option value="All">All Statuses</option>
+                <option value="Submitted">Submitted</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+
+            {/* Region Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Region</label>
+              <select
+                value={countryFilter}
+                onChange={(e) => setCountryFilter(e.target.value)}
+                className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-primary-100 outline-none transition-all"
+              >
+                <option value="All">All Regions</option>
+                {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+
+            {/* Department Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Dept</label>
+              <select
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+                className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold focus:ring-2 focus:ring-primary-100 outline-none transition-all"
+              >
+                <option value="All">All Departments</option>
+                {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+              </select>
+            </div>
+
+            {/* Priority Filter */}
+            <div className={`flex items-center gap-2 transition-all ${priorityFilter !== 'All' ? 'bg-primary-50 px-2 py-1 rounded-lg border border-primary-100' : ''}`}>
+              <label className={`text-[10px] font-black uppercase tracking-widest ${priorityFilter !== 'All' ? 'text-primary-600' : 'text-gray-400'}`}>Priority</label>
                 <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as IdeaStatus | 'All')}
-                  className="px-3 py-2 border border-gray-200 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-primary-100 outline-none transition-all"
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value as any)}
+                  className="px-3 py-1.5 border border-primary-200 bg-primary-50 rounded-lg text-xs font-bold text-primary-700 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
                 >
-                  <option value="All">All Statuses</option>
-                  <option value="Submitted">Submitted</option>
-                  <option value="Under Review">Under Review</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Rejected">Rejected</option>
+                  <option value="All">All Priorities</option>
+                  {PRIORITY_LABELS.map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
               </div>
 
-              {/* Action Buttons */}
-              <div className="h-8 w-px bg-gray-100 mx-2" />
-              
-              <button 
-                onClick={() => setShowExportModal(true)}
-                className="px-4 py-2 text-sm font-bold text-white bg-primary-600 rounded-lg hover:bg-primary-700 flex items-center gap-2 shadow-lg shadow-primary-100 transition-all active:scale-95"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search ideas, IDs, or submitters..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-100 outline-none transition-all"
+                />
+                <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                Export Report
-              </button>
+              </div>
             </div>
 
-            {/* Search Bar */}
-            <div className="relative flex-1 max-w-md">
-              <input
-                type="text"
-                placeholder="Search ideas, IDs, or submitters..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-100 outline-none transition-all"
-              />
-              <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <button 
+              onClick={() => setShowExportModal(true)}
+              className="px-4 py-2 text-sm font-bold text-white bg-primary-600 rounded-lg hover:bg-primary-700 flex items-center gap-2 shadow-lg shadow-primary-100 transition-all active:scale-95"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-            </div>
+              Export
+            </button>
           </div>
         </div>
 
