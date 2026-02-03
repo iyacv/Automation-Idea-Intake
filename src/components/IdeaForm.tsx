@@ -10,7 +10,8 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
   const [formData, setFormData] = useState({
     submitterFirstName: '',
     submitterLastName: '',
-    submitterEmail: '',
+    submitterEmailPrefix: '',
+    submitterEmailDomain: '@madison88.com',
     department: '' as Department | '',
     country: '' as Country | '',
     title: '',
@@ -32,10 +33,8 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
     const newErrors: Record<string, string> = {};
     if (!formData.submitterFirstName.trim()) newErrors.submitterFirstName = 'First name is required';
     if (!formData.submitterLastName.trim()) newErrors.submitterLastName = 'Last name is required';
-    if (!formData.submitterEmail.trim()) {
-      newErrors.submitterEmail = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.submitterEmail)) {
-      newErrors.submitterEmail = 'Invalid email address';
+    if (!formData.submitterEmailPrefix.trim()) {
+      newErrors.submitterEmailPrefix = 'Email is required';
     }
     if (!formData.department) newErrors.department = 'Department is required';
     if (!formData.country) newErrors.country = 'Country is required';
@@ -74,7 +73,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
         frequency: formData.frequency,
         submitterFirstName: formData.submitterFirstName,
         submitterLastName: formData.submitterLastName,
-        submitterEmail: formData.submitterEmail,
+        submitterEmail: `${formData.submitterEmailPrefix}${formData.submitterEmailDomain}`,
         currentProcessTitle: formData.currentProcessTitle,
         currentProcessProblem: formData.currentProcessProblem,
         isManualProcess: formData.isManualProcess,
@@ -85,7 +84,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
       if (idea) {
         // Reset form
         setFormData({
-          submitterFirstName: '', submitterLastName: '', submitterEmail: '', department: '', country: '', title: '', description: '',
+          submitterFirstName: '', submitterLastName: '', submitterEmailPrefix: '', submitterEmailDomain: '@madison88.com', department: '', country: '', title: '', description: '',
           frequency: '', expectedBenefit: '', currentProcessTitle: '', currentProcessProblem: '',
           isManualProcess: false, involvesMultipleDepartments: false, involvedDepartments: []
         });
@@ -147,7 +146,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-0.5">Email Address</p>
-                  <p className="text-sm font-semibold text-gray-800">{formData.submitterEmail}</p>
+                  <p className="text-sm font-semibold text-gray-800">{formData.submitterEmailPrefix}{formData.submitterEmailDomain}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -262,7 +261,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
 
         <p className="text-center text-[11px] text-gray-400 max-w-md mx-auto">
           By submitting, you agree that your idea will be reviewed by the IT Automation Team. 
-          A confirmation email will be sent to <span className="font-bold text-gray-500">{formData.submitterEmail}</span>.
+          A confirmation email will be sent to <span className="font-bold text-gray-500">{formData.submitterEmailPrefix}{formData.submitterEmailDomain}</span>.
         </p>
       </div>
     );
@@ -314,21 +313,31 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
 
           <div>
             <label className={labelClass}>Email Address <span className="text-red-500">*</span></label>
-            <div className="relative">
-              <input
-                type="email"
-                name="submitterEmail"
-                value={formData.submitterEmail}
-                onChange={(e) => setFormData({ ...formData, submitterEmail: e.target.value })}
-                placeholder="you@company.com"
-                className={`${inputClass('submitterEmail')} pl-10`}
-              />
-              <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
+            <div className="flex gap-0 relative">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  name="submitterEmailPrefix"
+                  value={formData.submitterEmailPrefix}
+                  onChange={(e) => setFormData({ ...formData, submitterEmailPrefix: e.target.value.replace(/\s+/g, '') })}
+                  placeholder="Enter email ID"
+                  className={`${inputClass('submitterEmailPrefix')} pl-10 rounded-r-none border-r-0`}
+                />
+                <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <select
+                value={formData.submitterEmailDomain}
+                onChange={(e) => setFormData({ ...formData, submitterEmailDomain: e.target.value })}
+                className="px-3 py-2.5 bg-gray-50 border border-gray-300 rounded-r-lg text-sm font-medium text-gray-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
+              >
+                <option value="@madison88.com">@madison88.com</option>
+                <option value=".madison88@outlook.com">.madison88@outlook.com</option>
+              </select>
             </div>
             <p className="mt-1 text-[10px] text-gray-400">Reference ID and updates will be sent to this email</p>
-            {errors.submitterEmail && <p className="mt-1.5 text-xs text-red-500">{errors.submitterEmail}</p>}
+            {errors.submitterEmailPrefix && <p className="mt-1.5 text-xs text-red-500">{errors.submitterEmailPrefix}</p>}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -622,7 +631,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
                   type="button"
                   onClick={() => {
                     setFormData({
-                      submitterFirstName: '', submitterLastName: '', submitterEmail: '', department: '', country: '', title: '', description: '',
+                      submitterFirstName: '', submitterLastName: '', submitterEmailPrefix: '', submitterEmailDomain: '@madison88.com', department: '', country: '', title: '', description: '',
                       frequency: '', expectedBenefit: '', currentProcessTitle: '', currentProcessProblem: '',
                       isManualProcess: false, involvesMultipleDepartments: false, involvedDepartments: []
                     });

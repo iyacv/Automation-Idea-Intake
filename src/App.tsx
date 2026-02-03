@@ -41,8 +41,8 @@ function App() {
     switch (displayedView) {
       case 'submit': return <SubmitPage />;
       case 'track': return <TrackPage />;
-      case 'logs': return <LogsPage />;
-      case 'ideas': return <AdminIdeasPage />;
+      case 'logs': return <LogsPage user={user} />;
+      case 'ideas': return <AdminIdeasPage user={user} />;
       case 'admin': return <AdminDashboard user={user} onLoginSuccess={handleLoginSuccess} onNavigate={handleNavigate} />;
     }
   };

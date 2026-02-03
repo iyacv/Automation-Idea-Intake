@@ -55,6 +55,28 @@ export type IdeaStatus =
   | 'Approved'
   | 'Rejected';
 
+export type PriorityLabel = 'Critical' | 'High' | 'Medium' | 'Low';
+
+export const PRIORITY_LABELS: PriorityLabel[] = ['Critical', 'High', 'Medium', 'Low'];
+
+export const getPriorityLabel = (priority?: number): PriorityLabel | 'N/A' => {
+  if (!priority) return 'N/A';
+  if (priority >= 9) return 'Critical';
+  if (priority >= 7) return 'High';
+  if (priority >= 4) return 'Medium';
+  return 'Low';
+};
+
+export const getPriorityColor = (label: PriorityLabel | 'N/A'): string => {
+  switch (label) {
+    case 'Critical': return 'bg-red-800 text-white';
+    case 'High': return 'bg-amber-600 text-white';
+    case 'Medium': return 'bg-blue-600 text-white';
+    case 'Low': return 'bg-slate-500 text-white';
+    default: return 'bg-gray-100 text-gray-400';
+  }
+};
+
 export const COUNTRIES: Country[] = ['Philippines', 'US', 'Indonesia'];
 
 export const DEPARTMENTS: Department[] = [

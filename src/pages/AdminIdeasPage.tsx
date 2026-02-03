@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Idea, IdeaStatus, Department, DEPARTMENTS, Country, COUNTRIES } from '../models';
+import { Idea, IdeaStatus, Department, DEPARTMENTS, Country, COUNTRIES, PriorityLabel, PRIORITY_LABELS, getPriorityLabel, User } from '../models';
 import { IdeaService } from '../services';
 import { IdeaTable, IdeaDetailModal } from '../components';
 
-export function AdminIdeasPage() {
+interface AdminIdeasPageProps {
+  user: User | null;
+}
+
+export function AdminIdeasPage({ user }: AdminIdeasPageProps) {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [filteredIdeas, setFilteredIdeas] = useState<Idea[]>([]);
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null);
@@ -11,7 +15,8 @@ export function AdminIdeasPage() {
   const [filters, setFilters] = useState({
     status: '' as IdeaStatus | '',
     department: '' as Department | '',
-    country: '' as Country | ''
+    country: '' as Country | '',
+    priority: '' as PriorityLabel | ''
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -61,6 +66,13 @@ export function AdminIdeasPage() {
       result = result.filter(idea => idea.country === filters.country);
     }
 
+    // Priority Filter
+    if (filters.priority) {
+      result = result.filter(idea => 
+        getPriorityLabel(idea.priority) === filters.priority
+      );
+    }
+
     setFilteredIdeas(result);
   }, [searchTerm, filters, ideas]);
 
@@ -70,7 +82,7 @@ export function AdminIdeasPage() {
     reviewData: { classification?: string; priority?: number; remarks?: string }
   ) => {
     const ideaService = new IdeaService();
-    await ideaService.updateIdeaStatus(idea.id, status, reviewData);
+    await ideaService.updateIdeaStatus(idea.id, status, reviewData, user?.name || 'Admin');
     loadData();
     setSelectedIdea(null);
   };
@@ -119,6 +131,15 @@ export function AdminIdeasPage() {
             </select>
 
             <select
+              value={filters.priority}
+              onChange={(e) => setFilters({ ...filters, priority: e.target.value as PriorityLabel | '' })}
+              className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500/20"
+            >
+              <option value="">All Priorities</option>
+              {PRIORITY_LABELS.map(label => <option key={label} value={label}>{label}</option>)}
+            </select>
+
+            <select
               value={filters.status}
               onChange={(e) => setFilters({ ...filters, status: e.target.value as IdeaStatus | '' })}
               className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500/20"
@@ -147,7 +168,7 @@ export function AdminIdeasPage() {
           <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Results: {filteredIdeas.length} ideas</span>
           { (searchTerm || filters.status || filters.department || filters.country) && (
             <button 
-              onClick={() => { setSearchTerm(''); setFilters({ status: '', department: '', country: '' }); }}
+              onClick={() => { setSearchTerm(''); setFilters({ status: '', department: '', country: '', priority: '' }); }}
               className="text-xs font-semibold text-primary-600 hover:underline"
             >
               Clear Filters

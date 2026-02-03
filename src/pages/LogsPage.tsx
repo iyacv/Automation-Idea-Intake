@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Idea, IdeaStatus, DEPARTMENTS, COUNTRIES } from '../models';
+import { Idea, IdeaStatus, DEPARTMENTS, COUNTRIES, getPriorityLabel, getPriorityColor, PriorityLabel, PRIORITY_LABELS, User } from '../models';
 import { IdeaService } from '../services';
 import { AuditService } from '../services/AuditService';
 import { AuditLog } from '../models/AuditLog';
+import { IdeaDetailModal } from '../components';
 
-export function LogsPage() {
+interface LogsPageProps {
+  user: User | null;
+}
+
+export function LogsPage({ user }: LogsPageProps) {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
@@ -12,8 +17,10 @@ export function LogsPage() {
   const [statusFilter, setStatusFilter] = useState<IdeaStatus | 'All'>('All');
   const [departmentFilter, setDepartmentFilter] = useState<string>('All');
   const [countryFilter, setCountryFilter] = useState<string>('All');
+  const [priorityFilter, setPriorityFilter] = useState<PriorityLabel | 'All'>('All');
   const [dateRange, setDateRange] = useState<'all' | 'today' | 'week' | 'month'>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedIdeaForModal, setSelectedIdeaForModal] = useState<Idea | null>(null);
 
   useEffect(() => {
     loadData();
@@ -88,6 +95,11 @@ export function LogsPage() {
 
     // Country filter
     if (countryFilter !== 'All' && idea.country !== countryFilter) {
+      return false;
+    }
+
+    // Priority filter
+    if (priorityFilter !== 'All' && getPriorityLabel(idea.priority) !== priorityFilter) {
       return false;
     }
     
@@ -192,6 +204,21 @@ export function LogsPage() {
               </select>
             </div>
 
+            {/* Priority Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">Priority</label>
+              <select
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value as any)}
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-primary-600 focus:outline-none"
+              >
+                <option value="All">All Priority</option>
+                {PRIORITY_LABELS.map(label => (
+                  <option key={label} value={label}>{label}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="flex-1"></div>
 
             {/* Actions */}
@@ -201,7 +228,55 @@ export function LogsPage() {
               </svg>
               Print
             </button>
-            <button className="px-4 py-2 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-md flex items-center gap-2">
+            <button 
+              onClick={() => {
+                const headers = [
+                  "ID", "Title", "Description", "Submitter Name", "Submitter Email", 
+                  "Department", "Region/Country", "Status", "Priority", 
+                  "Date Submitted", "Expected Benefit", "Frequency", 
+                  "Current Process Title", "Current Process Problem", "Manual Process?", 
+                  "Multi-Dept?", "Involved Depts", "Admin Remarks", "Classification"
+                ];
+
+                const csvContent = "\uFEFF" + headers.join(",") + "\n"
+                  + filteredIdeas.map(i => [
+                      i.id, 
+                      `"${i.title.replace(/"/g, '""')}"`, 
+                      `"${i.description.replace(/"/g, '""')}"`, 
+                      `"${i.submitterFirstName} ${i.submitterLastName}"`,
+                      i.submitterEmail,
+                      i.department, 
+                      i.country,
+                      i.status, 
+                      (i.status === 'Approved' || i.status === 'Rejected') ? getPriorityLabel(i.priority) : "N/A",
+                      i.dateSubmitted.toLocaleString(),
+                      `"${i.expectedBenefit}"`,
+                      i.frequency,
+                      `"${(i.currentProcessTitle || '').replace(/"/g, '""')}"`,
+                      `"${(i.currentProcessProblem || '').replace(/"/g, '""')}"`,
+                      i.isManualProcess ? "Yes" : "No",
+                      i.involvesMultipleDepartments ? "Yes" : "No",
+                      `"${(i.involvedDepartments || []).join(", ")}"`,
+                      `"${(i.adminRemarks || '').replace(/"/g, '""')}"`,
+                      i.classification || "N/A"
+                    ].join(",")).join("\n");
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                
+                const statusName = statusFilter === 'All' ? 'AllStatus' : statusFilter.replace(/\s+/g, '');
+                const dateStr = new Date().toLocaleDateString().replace(/\//g, '-');
+                const fileName = `${statusName}_IdeaIntakeM88_${dateStr}.csv`;
+                
+                link.setAttribute("href", url);
+                link.setAttribute("download", fileName);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+              className="px-4 py-2 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 rounded-md flex items-center gap-2"
+            >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
@@ -240,6 +315,7 @@ export function LogsPage() {
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Submitter</th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Priority</th>
                 <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
                 <th className="py-3 px-4"></th>
               </tr>
@@ -276,6 +352,15 @@ export function LogsPage() {
                           {idea.status}
                         </span>
                       </td>
+                      <td className="py-3 px-4">
+                        {(idea.status === 'Approved' || idea.status === 'Rejected') ? (
+                          <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getPriorityColor(getPriorityLabel(idea.priority))}`}>
+                            {getPriorityLabel(idea.priority)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-300 text-xs">—</span>
+                        )}
+                      </td>
                       <td className="py-3 px-4 text-sm text-gray-800">
                         {idea.title}
                       </td>
@@ -298,8 +383,20 @@ export function LogsPage() {
                           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* Idea Details */}
                             <div className="bg-white rounded-lg p-4 shadow-sm">
-                              <h4 className="text-sm font-semibold text-primary-700 mb-3">IDEA DETAILS</h4>
+                              <div className="flex justify-between items-center mb-3">
+                                <h4 className="text-sm font-semibold text-primary-700">IDEA DETAILS</h4>
+                                <button 
+                                  onClick={(e) => { e.stopPropagation(); setSelectedIdeaForModal(idea); }}
+                                  className="text-xs font-bold text-primary-600 hover:underline flex items-center gap-1"
+                                >
+                                  More <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                </button>
+                              </div>
                               <div className="space-y-2 text-sm">
+                                <div className="mb-2">
+                                  <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Title</p>
+                                  <p className="text-gray-800 font-medium leading-tight">{idea.title}</p>
+                                </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-500">Expected Benefit</span>
                                   <span className="text-gray-800">{idea.expectedBenefit}</span>
@@ -312,16 +409,16 @@ export function LogsPage() {
                                   <span className="text-gray-500">Manual Process</span>
                                   <span className="text-gray-800">{idea.isManualProcess ? 'Yes' : 'No'}</span>
                                 </div>
-                                {idea.classification && (
+                                {idea.classification && (idea.status === 'Approved' || idea.status === 'Rejected') && (
                                   <div className="flex justify-between">
                                     <span className="text-gray-500">Classification</span>
                                     <span className="text-gray-800">{idea.classification}</span>
                                   </div>
                                 )}
-                                {idea.priority && (
+                                {idea.priority && (idea.status === 'Approved' || idea.status === 'Rejected') && (
                                   <div className="flex justify-between">
                                     <span className="text-gray-500">Priority</span>
-                                    <span className="text-gray-800">{idea.priority}/10</span>
+                                    <span className="text-gray-800">{idea.priority}/10 ({getPriorityLabel(idea.priority)})</span>
                                   </div>
                                 )}
                               </div>
@@ -385,6 +482,19 @@ export function LogsPage() {
           Showing {filteredIdeas.length} of {ideas.length} ideas
         </div>
       </div>
+
+      {selectedIdeaForModal && (
+        <IdeaDetailModal 
+          idea={selectedIdeaForModal} 
+          onClose={() => setSelectedIdeaForModal(null)} 
+          onUpdateStatus={async (idea, status, reviewData) => {
+            const ideaService = new IdeaService();
+            await ideaService.updateIdeaStatus(idea.id, status, reviewData, user?.name || 'Admin');
+            loadData();
+            setSelectedIdeaForModal(null);
+          }}
+        />
+      )}
     </div>
   );
 }

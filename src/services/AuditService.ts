@@ -3,23 +3,34 @@ import { AuditLog, AuditAction } from '../models';
 
 export class AuditService {
   async log(ideaId: string, action: AuditAction, performedBy: string, details: string): Promise<AuditLog | null> {
-    const { data, error } = await supabase
-      .from('audit_logs')
-      .insert({
-        idea_id: ideaId,
-        action,
-        performed_by: performedBy,
-        details
-      })
-      .select()
-      .single();
+    try {
+      const now = new Date().toISOString();
+      const log_id = `LOG-${Date.now()}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+      
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .insert({
+          log_id: log_id,
+          idea_id: ideaId,
+          action: action,
+          performed_by: performedBy,
+          details: details,
+          performed_at: now,
+          submitted_date: now
+        })
+        .select()
+        .single();
 
-    if (error) {
-      console.error('Error creating audit log:', error);
+      if (error) {
+        console.error('Supabase Audit Log Error:', error);
+        return null;
+      }
+
+      return data ? this.mapToLog(data) : null;
+    } catch (err) {
+      console.error('Audit Log Exception:', err);
       return null;
     }
-
-    return this.mapToLog(data);
   }
 
   async getLogsByIdeaId(ideaId: string): Promise<AuditLog[]> {
@@ -34,7 +45,7 @@ export class AuditService {
       return [];
     }
 
-    return data.map(item => this.mapToLog(item));
+    return (data || []).map(item => this.mapToLog(item));
   }
 
   async getAllLogs(): Promise<AuditLog[]> {
@@ -48,17 +59,18 @@ export class AuditService {
       return [];
     }
 
-    return data.map(item => this.mapToLog(item));
+    return (data || []).map(item => this.mapToLog(item));
   }
 
   private mapToLog(item: any): AuditLog {
+    if (!item) return {} as AuditLog;
     return {
-      id: item.id,
-      ideaId: item.idea_id,
-      action: item.action as AuditAction,
-      performedBy: item.performed_by,
-      performedAt: new Date(item.performed_at),
-      details: item.details
+      id: item.log_id || item.id || `temp-${Math.random()}`,
+      ideaId: item.idea_id || '',
+      action: (item.action as AuditAction) || 'Updated',
+      performedBy: item.performed_by || 'System',
+      performedAt: new Date(item.performed_at || item.submitted_date || Date.now()),
+      details: item.details || ''
     };
   }
 }

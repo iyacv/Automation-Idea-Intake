@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { Idea, IdeaStatus, Department, ExpectedBenefit, Country } from '../models';
+import { AuditService } from './AuditService';
 
 export class IdeaService {
   private generateId(): string {
@@ -60,6 +61,15 @@ export class IdeaService {
       return null;
     }
 
+    // Log the creation activity
+    const auditService = new AuditService();
+    await auditService.log(
+      id, 
+      'Created', 
+      `${data.submitterFirstName} ${data.submitterLastName}`,
+      `Initial submission of "${data.title}"`
+    );
+
     console.log('Successfully submitted:', idea);
     return this.mapToIdea(idea);
   }
@@ -100,7 +110,8 @@ export class IdeaService {
       classification?: any;
       priority?: number;
       remarks?: string;
-    }
+    },
+    performedBy: string = 'Admin'
   ): Promise<boolean> {
     const { error } = await supabase
       .from('ideas')
@@ -116,6 +127,24 @@ export class IdeaService {
       console.error('Error updating idea status:', error);
       return false;
     }
+
+    // Capture specific action for audit
+    let action: any = 'StatusChanged';
+    let details = `Status updated to ${status}`;
+    
+    if (status === 'Approved') {
+      action = 'Approved';
+      details = 'Idea has been approved for implementation';
+    } else if (status === 'Rejected') {
+      action = 'Rejected';
+      details = `Idea has been rejected. Remarks: ${reviewData.remarks || 'None'}`;
+    } else if (reviewData.classification || reviewData.priority) {
+      action = 'Updated';
+      details = 'Idea details (classification/priority) updated';
+    }
+
+    const auditService = new AuditService();
+    await auditService.log(id, action, performedBy, details);
 
     return true;
   }

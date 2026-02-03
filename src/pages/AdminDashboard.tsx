@@ -44,7 +44,7 @@ export function AdminDashboard({ onLoginSuccess, onNavigate, user }: AdminDashbo
     reviewData: { classification?: string; priority?: number; remarks?: string }
   ) => {
     const ideaService = new IdeaService();
-    await ideaService.updateIdeaStatus(idea.id, status, reviewData);
+    await ideaService.updateIdeaStatus(idea.id, status, reviewData, user?.name || 'Admin');
     loadData();
     setSelectedIdea(null);
   };
@@ -161,7 +161,7 @@ export function AdminDashboard({ onLoginSuccess, onNavigate, user }: AdminDashbo
             <div className="h-64 bg-white rounded-2xl border border-gray-100 flex items-center justify-center">
               <div className="flex flex-col items-center gap-3">
                 <div className="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
-                <p className="text-sm text-gray-400 font-medium">Fetching from Supabase...</p>
+                <p className="text-sm text-gray-400 font-medium">Fetching...</p>
               </div>
             </div>
           ) : (

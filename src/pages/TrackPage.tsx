@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Idea, IdeaStatus, Department, STATUS_COLORS, DEPARTMENTS } from '../models';
+import { Idea, IdeaStatus, Department, STATUS_COLORS, DEPARTMENTS, getPriorityLabel, getPriorityColor } from '../models';
 import { IdeaService } from '../services';
 
 export function TrackPage() {
@@ -50,13 +50,13 @@ export function TrackPage() {
   }, [searchId, filters, ideas]);
 
   const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
+    return new Date(date).toLocaleString('en-US', {
       month: 'short',
-      day: '2-digit',
+      day: 'numeric',
+      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
-    }).format(new Date(date));
+    });
   };
 
   return (
@@ -129,6 +129,7 @@ export function TrackPage() {
                     <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Reference ID</th>
                     <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Idea Title</th>
                     <th className="px-6 py-4 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Department</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Priority</th>
                     <th className="px-6 py-4 text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
                   </tr>
                 </thead>
@@ -149,6 +150,15 @@ export function TrackPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-xs font-medium text-gray-600">{idea.department}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          {(idea.status === 'Approved' || idea.status === 'Rejected') ? (
+                            <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${getPriorityColor(getPriorityLabel(idea.priority))}`}>
+                              {getPriorityLabel(idea.priority)}
+                            </span>
+                          ) : (
+                            <span className="text-gray-300 text-[10px]">—</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${STATUS_COLORS[idea.status]}`}>

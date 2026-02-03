@@ -1,4 +1,4 @@
-import { Idea, STATUS_COLORS } from '../models';
+import { Idea, STATUS_COLORS, getPriorityLabel, getPriorityColor } from '../models';
 
 interface IdeaTableProps {
   ideas: Idea[];
@@ -29,6 +29,7 @@ export function IdeaTable({ ideas, onViewDetails }: IdeaTableProps) {
               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Submitter</th>
               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Priority</th>
               <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</th>
             </tr>
           </thead>
@@ -47,12 +48,27 @@ export function IdeaTable({ ideas, onViewDetails }: IdeaTableProps) {
                 <td className="py-3 px-4 text-sm text-gray-600">{idea.country}</td>
                 <td className="py-3 px-4 text-sm text-gray-600">{idea.submitterFirstName} {idea.submitterLastName}</td>
                 <td className="py-3 px-4 text-sm text-gray-600">
-                  {new Date(idea.dateSubmitted).toLocaleDateString()}
+                  {new Date(idea.dateSubmitted).toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
                 </td>
                 <td className="py-3 px-4">
                   <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${STATUS_COLORS[idea.status]}`}>
                     {idea.status}
                   </span>
+                </td>
+                <td className="py-3 px-4">
+                  {(idea.status === 'Approved' || idea.status === 'Rejected') ? (
+                    <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${getPriorityColor(getPriorityLabel(idea.priority))}`}>
+                      {getPriorityLabel(idea.priority)}
+                    </span>
+                  ) : (
+                    <span className="text-gray-300 text-xs">—</span>
+                  )}
                 </td>
                 <td className="py-3 px-4">
                   <button
