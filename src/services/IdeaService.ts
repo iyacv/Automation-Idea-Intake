@@ -71,6 +71,34 @@ export class IdeaService {
       `Initial submission of "${data.title}"`
     );
 
+    // Trigger Power Automate Workflow
+    try {
+      const webhookUrl = import.meta.env.VITE_POWER_AUTOMATE_WEBHOOK_URL;
+      if (webhookUrl) {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            idea_id: id,
+            title: data.title,
+            description: data.description,
+            submitter_email: data.submitterEmail,
+            submitter_name: `${data.submitterFirstName} ${data.submitterLastName}`,
+            department: data.department,
+            submission_date: new Date().toISOString()
+          }),
+        });
+        console.log('Power Automate webhook triggered successfully');
+      } else {
+        console.warn('VITE_POWER_AUTOMATE_WEBHOOK_URL is not set');
+      }
+    } catch (err) {
+      console.error('Failed to trigger Power Automate webhook:', err);
+    
+    }
+
     console.log('Successfully submitted:', idea);
     return this.mapToIdea(idea);
   }
