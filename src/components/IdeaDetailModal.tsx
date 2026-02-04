@@ -18,7 +18,7 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
   const [isAddingReviewer, setIsAddingReviewer] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-expand textarea height
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -199,7 +199,7 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
               </div>
             </div>
 
-            {/* Right Column: Meta & Assessment (5/12) */}
+           
             <div className="lg:col-span-5 space-y-6">
               <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
                 <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-4">Submission Meta</h3>

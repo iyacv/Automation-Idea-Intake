@@ -22,14 +22,14 @@ export function SuccessModal({ isOpen, onClose, title, ideaId, submitterEmail }:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
+
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-backdrop-in" onClick={onClose} />
 
-      {/* Modal */}
+
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-modal-in">
-        {/* Success header with gradient */}
+
         <div className="bg-gradient-to-br from-emerald-400 to-emerald-600 px-6 pt-8 pb-10 text-center relative">
-          {/* Decorative circles */}
+     
           <div className="absolute top-0 left-0 w-24 h-24 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
           <div className="absolute bottom-0 right-0 w-32 h-32 bg-white/10 rounded-full translate-x-1/3 translate-y-1/3" />
 
@@ -43,7 +43,7 @@ export function SuccessModal({ isOpen, onClose, title, ideaId, submitterEmail }:
           </div>
         </div>
 
-        {/* Content */}
+
         <div className="px-6 pb-6 -mt-4">
           <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 mb-5">
             <div className="text-center mb-4">

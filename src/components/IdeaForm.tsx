@@ -617,6 +617,10 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
         </button>
       </div>
 
+      <p className="text-center text-[11px] text-gray-400 max-w-md mx-auto pt-4">
+        By proceeding, you agree that your data will be reviewed by the Madison 88 Business Solutions Asia IT Department Team.
+      </p>
+
       {/* Clear form confirmation dialog */}
       {showClearConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
