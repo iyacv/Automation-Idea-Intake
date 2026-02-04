@@ -41,7 +41,7 @@ export function AdminDashboard({ onLoginSuccess, onNavigate, user }: AdminDashbo
   const handleUpdateStatus = async (
     idea: Idea, 
     status: IdeaStatus, 
-    reviewData: { classification?: string; priority?: number; remarks?: string }
+    reviewData: { classification?: string; priority?: number; remarks?: string; reviewedBy?: string }
   ) => {
     const ideaService = new IdeaService();
     await ideaService.updateIdeaStatus(idea.id, status, reviewData, user?.name || 'Admin');
@@ -83,7 +83,7 @@ export function AdminDashboard({ onLoginSuccess, onNavigate, user }: AdminDashbo
         <div className="bg-gradient-to-r from-primary-700 to-primary-600 rounded-2xl p-6 mb-6 text-white shadow-lg relative overflow-hidden">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold mb-1">Welcome, {user.name}</h1>
+              <h1 className="text-2xl font-bold mb-1">Madison 88 </h1>
               <p className="text-white/80">Overview of all submitted ideas and their status.</p>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">

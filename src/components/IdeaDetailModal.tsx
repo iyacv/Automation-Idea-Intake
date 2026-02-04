@@ -1,17 +1,21 @@
 import { useState, useRef, useEffect } from 'react';
 import { Idea, IdeaStatus, STATUS_COLORS } from '../models';
+import { IdeaService } from '../services';
 import { CATEGORIES, ClassificationCategory } from '../models/Classification';
 
 interface IdeaDetailModalProps {
   idea: Idea;
   onClose: () => void;
-  onUpdateStatus: (idea: Idea, status: IdeaStatus, reviewData: { classification?: string; priority?: number; remarks?: string }) => void;
+  onUpdateStatus: (idea: Idea, status: IdeaStatus, reviewData: { classification?: string; priority?: number; remarks?: string; reviewedBy?: string }) => void;
 }
 
 export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailModalProps) {
   const [classification, setClassification] = useState<ClassificationCategory | ''>(idea.classification || '');
   const [priority, setPriority] = useState<number>(idea.priority || 5);
   const [remarks, setRemarks] = useState<string>(idea.adminRemarks || '');
+  const [reviewer, setReviewer] = useState<string>(idea.reviewedBy || '');
+  const [availableReviewers, setAvailableReviewers] = useState<string[]>(['Paul', 'Lester']);
+  const [isAddingReviewer, setIsAddingReviewer] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-expand textarea height
@@ -22,26 +26,71 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
     }
   }, [remarks]);
 
+  useEffect(() => {
+    const fetchReviewers = async () => {
+      const service = new IdeaService();
+      const distinctReviewers = await service.getReviewers();
+      // Ensure default options are present
+      const combined = Array.from(new Set([...distinctReviewers, 'Paul', 'Lester'])).sort();
+      setAvailableReviewers(combined);
+    };
+    fetchReviewers();
+  }, []);
+
+  const [error, setError] = useState<string | null>(null);
+  const [confirmationAction, setConfirmationAction] = useState<IdeaStatus | null>(null);
+
   const handleStatusChange = (newStatus: IdeaStatus) => {
-    onUpdateStatus(idea, newStatus, {
+    setError(null);
+    
+    if (newStatus === 'Approved' || newStatus === 'Rejected') {
+      if (!reviewer) {
+        setError('Reviewer is required');
+        return;
+      }
+    }
+
+    if (newStatus === 'Approved') {
+      if (!classification) {
+        setError('Classification is required');
+        return;
+      }
+    }
+
+
+    
+    // Set the pending action to show the confirmation UI
+    setConfirmationAction(newStatus);
+  };
+
+  const handleConfirmStatusChange = () => {
+    if (!confirmationAction) return;
+
+    onUpdateStatus(idea, confirmationAction, {
       classification: classification || undefined,
       priority: priority,
-      remarks: remarks || undefined
+      remarks: remarks || undefined,
+      reviewedBy: reviewer || undefined
     });
+    setConfirmationAction(null);
     onClose();
   };
 
+  const cancelConfirmation = () => {
+    setConfirmationAction(null);
+  };
+
   const getPriorityColor = (value: number) => {
-    if (value >= 8) return 'text-red-600';
-    if (value >= 6) return 'text-orange-600';
-    if (value >= 4) return 'text-yellow-600';
+    if (value === 4) return 'text-red-600';
+    if (value === 3) return 'text-orange-600';
+    if (value === 2) return 'text-yellow-600';
     return 'text-green-600';
   };
 
   const getPriorityLabel = (value: number) => {
-    if (value >= 9) return 'Critical';
-    if (value >= 7) return 'High';
-    if (value >= 4) return 'Medium';
+    if (value === 4) return 'Critical';
+    if (value === 3) return 'High';
+    if (value === 2) return 'Medium';
     return 'Low';
   };
 
@@ -61,14 +110,14 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
             <div className="flex items-center gap-4">
               <div className="flex flex-col">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-tighter rounded bg-white/10 text-white/90 border border-white/20">
+                  <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-tighter rounded bg-white/10 text-white/90 border border-white/20">
                     ID: {idea.id}
                   </span>
-                  <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-widest rounded-full ${STATUS_COLORS[idea.status]}`}>
+                  <span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest rounded-full ${STATUS_COLORS[idea.status]}`}>
                     {idea.status}
                   </span>
                 </div>
-                <h2 className="text-xl font-black truncate max-w-md">{idea.title}</h2>
+                <h2 className="text-xl font-bold truncate max-w-md">{idea.title}</h2>
               </div>
             </div>
             <button
@@ -92,18 +141,18 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
                   <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center text-primary-600">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.168.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18 18.247 18.477 16.5 18c-1.746 0-3.168.477-4.5 1.253" /></svg>
                   </div>
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Idea Description</h3>
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Idea Description</h3>
                 </div>
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="text-[10px] font-black text-primary-600 uppercase tracking-tight">Idea Title</label>
-                    <p className="text-base font-black text-gray-900 leading-tight">{idea.title}</p>
+                    <label className="text-[10px] font-bold text-primary-600 uppercase tracking-tight">Idea Title</label>
+                    <p className="text-sm font-medium text-gray-900 leading-tight">{idea.title}</p>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-primary-600 uppercase tracking-tight">Implementation Plan / Goal</label>
+                    <label className="text-[10px] font-bold text-primary-600 uppercase tracking-tight">Implementation Plan / Goal</label>
                     <div className="mt-2 bg-primary-50/30 rounded-xl p-4 border border-primary-50">
-                      <p className="text-sm font-bold text-gray-800 leading-relaxed whitespace-pre-wrap">{idea.description}</p>
+                      <p className="text-sm font-normal text-gray-800 leading-relaxed whitespace-pre-wrap">{idea.description}</p>
                     </div>
                   </div>
                 </div>
@@ -114,34 +163,34 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
                   <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                   </div>
-                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest">Current Process</h3>
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Current Process</h3>
                 </div>
 
                 <div className="space-y-5">
                   <div>
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-tight">Process Title</label>
-                    <p className="text-sm font-bold text-gray-800">{idea.currentProcessTitle || 'Not Provided'}</p>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">Process Title</label>
+                    <p className="text-sm font-medium text-gray-800">{idea.currentProcessTitle || 'Not Provided'}</p>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-tight">Pain Points / Current Workflow</label>
-                    <p className="text-sm text-gray-600 italic font-medium leading-relaxed">{idea.currentProcessProblem || 'No additional details recorded'}</p>
+                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">Pain Points / Current Workflow</label>
+                    <p className="text-sm text-gray-600 italic font-normal leading-relaxed">{idea.currentProcessProblem || 'No additional details recorded'}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className={`p-3 rounded-xl border flex items-center justify-between ${idea.isManualProcess ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-gray-50 border-gray-100 text-gray-400 opacity-60'}`}>
-                      <span className="text-[10px] font-black uppercase tracking-tight">Manual Process</span>
-                      <span className="text-xs font-black">{idea.isManualProcess ? 'YES' : 'NO'}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-tight">Manual Process</span>
+                      <span className="text-xs font-bold">{idea.isManualProcess ? 'YES' : 'NO'}</span>
                     </div>
                     <div className={`p-3 rounded-xl border flex items-center justify-between ${idea.involvesMultipleDepartments ? 'bg-blue-50 border-blue-100 text-blue-700' : 'bg-gray-50 border-gray-100 text-gray-400 opacity-60'}`}>
-                      <span className="text-[10px] font-black uppercase tracking-tight">Multi-Dept</span>
-                      <span className="text-xs font-black">{idea.involvesMultipleDepartments ? 'YES' : 'NO'}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-tight">Multi-Dept</span>
+                      <span className="text-xs font-bold">{idea.involvesMultipleDepartments ? 'YES' : 'NO'}</span>
                     </div>
                   </div>
                   {idea.involvedDepartments && idea.involvedDepartments.length > 0 && (
                     <div className="pt-2">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-tight mb-2 block">Affected Departments</label>
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-tight mb-2 block">Affected Departments</label>
                       <div className="flex flex-wrap gap-2">
                         {idea.involvedDepartments.map(dept => (
-                          <span key={dept} className="px-2.5 py-1 bg-gray-100 text-gray-600 text-[10px] font-black rounded-lg uppercase tracking-widest">{dept}</span>
+                          <span key={dept} className="px-2.5 py-1 bg-gray-100 text-gray-600 text-[10px] font-bold rounded-lg uppercase tracking-widest">{dept}</span>
                         ))}
                       </div>
                     </div>
@@ -153,40 +202,40 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
             {/* Right Column: Meta & Assessment (5/12) */}
             <div className="lg:col-span-5 space-y-6">
               <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Submission Meta</h3>
+                <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-4">Submission Meta</h3>
                 <div className="grid grid-cols-2 gap-y-4 gap-x-6">
                   <div>
                     <label className="text-[9px] font-bold text-gray-500 uppercase block mb-1">Submitter</label>
-                    <p className="text-xs font-black text-gray-900 leading-tight">{idea.submitterFirstName} {idea.submitterLastName}</p>
-                    <p className="text-[10px] text-primary-600 font-medium truncate">{idea.submitterEmail}</p>
+                    <p className="text-xs font-medium text-gray-900 leading-tight">{idea.submitterFirstName} {idea.submitterLastName}</p>
+                    <p className="text-[10px] text-primary-600 font-normal truncate">{idea.submitterEmail}</p>
                   </div>
                   <div>
                     <label className="text-[9px] font-bold text-gray-500 uppercase block mb-1">Date Submitted</label>
-                    <p className="text-xs font-black text-gray-800">
+                    <p className="text-xs font-medium text-gray-800">
                       {new Date(idea.dateSubmitted).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </p>
                   </div>
                   <div>
                     <label className="text-[9px] font-bold text-gray-500 uppercase block mb-1">Region/Dept</label>
-                    <p className="text-xs font-black text-gray-900">{idea.country} ({idea.department})</p>
+                    <p className="text-xs font-medium text-gray-900">{idea.country} ({idea.department})</p>
                   </div>
                   <div>
                     <label className="text-[9px] font-bold text-gray-500 uppercase block mb-1">Expected Benefit</label>
-                    <span className="inline-block px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-black rounded uppercase">{idea.expectedBenefit}</span>
+                    <span className="inline-block px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded uppercase">{idea.expectedBenefit}</span>
                   </div>
                   <div>
                     <label className="text-[9px] font-bold text-gray-500 uppercase block mb-1">Frequency</label>
-                    <p className="text-xs font-black text-gray-900">{idea.frequency}</p>
+                    <p className="text-xs font-medium text-gray-900">{idea.frequency}</p>
                   </div>
                 </div>
               </div>
 
               {idea.status !== 'Submitted' ? (
                 <div className="bg-white rounded-xl p-5 shadow-sm border border-blue-100 border-l-4 border-l-primary-600">
-                  <h3 className="text-xs font-black text-primary-800 uppercase tracking-widest mb-5 flex items-center justify-between">Admin Assessment</h3>
+                  <h3 className="text-xs font-bold text-primary-800 uppercase tracking-widest mb-5 flex items-center justify-between">Admin Assessment</h3>
                   <div className="space-y-5">
                     <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase mb-2 block">Final Classification</label>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase mb-2 block">Final Classification</label>
                       <select
                         value={classification}
                         onChange={(e) => setClassification(e.target.value as ClassificationCategory)}
@@ -198,19 +247,19 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
                       </select>
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase mb-2 block flex justify-between">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase mb-2 block flex justify-between">
                         Priority Level
-                        <span className={`font-black ${getPriorityColor(priority)}`}>{getPriorityLabel(priority)} ({priority})</span>
+                        <span className={`font-bold ${getPriorityColor(priority)}`}>{getPriorityLabel(priority)} ({priority})</span>
                       </label>
                       <input
-                        type="range" min="1" max="10" value={priority}
+                        type="range" min="1" max="4" value={priority}
                         onChange={(e) => setPriority(Number(e.target.value))}
                         disabled={isReadOnly}
                         className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none accent-primary-600 cursor-pointer"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-black text-gray-500 uppercase mb-2 block">Admin Assessment Remarks</label>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase mb-2 block">Admin Assessment Remarks</label>
                       {isReadOnly ? (
                         <div className="w-full px-3 py-3 rounded-xl border border-gray-100 bg-gray-50/50 text-xs font-medium text-gray-700 italic whitespace-pre-wrap min-h-[100px]">
                           {remarks || 'No detailed assessment remarks provided.'}
@@ -226,6 +275,48 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
                         />
                       )}
                     </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase mb-2 block">Reviewer</label>
+                      <div className="flex gap-2">
+                        {isAddingReviewer ? (
+                           <div className="flex-1 flex gap-2">
+                             <input 
+                               type="text" 
+                               value={reviewer}
+                               onChange={(e) => setReviewer(e.target.value)}
+                               placeholder="Enter reviewer name"
+                               disabled={isReadOnly}
+                               className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-xs font-bold focus:ring-2 focus:ring-primary-100 outline-none transition-all bg-white"
+                               autoFocus
+                             />
+                             <button
+                               onClick={() => { setIsAddingReviewer(false); setReviewer(''); }}
+                               className="px-3 py-2 text-xs font-bold text-gray-500 hover:bg-gray-100 rounded-xl"
+                             >
+                               Cancel
+                             </button>
+                           </div>
+                        ) : (
+                          <select
+                            value={availableReviewers.includes(reviewer) ? reviewer : ''}
+                            onChange={(e) => {
+                              if (e.target.value === '__NEW__') {
+                                setIsAddingReviewer(true);
+                                setReviewer('');
+                              } else {
+                                setReviewer(e.target.value);
+                              }
+                            }}
+                            disabled={isReadOnly}
+                            className={`w-full px-3 py-2 rounded-xl border border-gray-200 text-xs font-bold focus:ring-2 focus:ring-primary-100 outline-none transition-all ${isReadOnly ? 'bg-gray-50' : 'bg-white'}`}
+                          >
+                            <option value="">Select Reviewer</option>
+                            {availableReviewers.map((r) => <option key={r} value={r}>{r}</option>)}
+                            <option value="__NEW__" className="text-primary-600 font-bold">+ Add New Reviewer</option>
+                          </select>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -234,7 +325,7 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-primary-800 uppercase mb-1">Pending Initial Review</h4>
+                    <h4 className="text-xs font-bold text-primary-800 uppercase mb-1">Pending Initial Review</h4>
                     <p className="text-[11px] text-primary-700 leading-relaxed font-medium">This submission has not been processed. Click <strong>"Start Review"</strong> in the actions below to categorize and score it.</p>
                   </div>
                 </div>
@@ -246,9 +337,10 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
         {/* Footer */}
         <div className="border-t border-gray-100 p-4 bg-white shrink-0">
           <div className="flex flex-wrap items-center justify-between gap-4">
+            {error && <span className="text-red-600 text-xs font-bold">{error}</span>}
             <button 
               onClick={onClose}
-              className="px-4 py-2 text-[10px] font-black text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-widest border border-gray-100 rounded-lg"
+              className="px-4 py-2 text-[10px] font-bold text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-widest border border-gray-100 rounded-lg"
             >
               Close
             </button>
@@ -258,7 +350,7 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
                 {idea.status === 'Submitted' ? (
                   <button
                     onClick={() => handleStatusChange('Under Review')}
-                    className="px-6 py-2.5 text-[10px] font-black text-white bg-primary-700 hover:bg-primary-800 rounded-xl transition-all shadow-lg active:scale-95 flex items-center gap-2 uppercase tracking-widest"
+                    className="px-6 py-2.5 text-[10px] font-bold text-white bg-primary-700 hover:bg-primary-800 rounded-xl transition-all shadow-lg active:scale-95 flex items-center gap-2 uppercase tracking-widest"
                   >
                     Start Review
                   </button>
@@ -266,13 +358,13 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
                   <>
                     <button
                       onClick={() => handleStatusChange('Rejected')}
-                      className="px-6 py-2.5 text-[10px] font-black text-white bg-red-600 hover:bg-red-700 rounded-xl transition-all shadow-sm active:scale-95 uppercase tracking-widest"
+                      className="px-6 py-2.5 text-[10px] font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-all shadow-sm active:scale-95 uppercase tracking-widest"
                     >
                       Reject
                     </button>
                     <button
                       onClick={() => handleStatusChange('Approved')}
-                      className="px-6 py-2.5 text-[10px] font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm active:scale-95 uppercase tracking-widest"
+                      className="px-6 py-2.5 text-[10px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-sm active:scale-95 uppercase tracking-widest"
                     >
                       Approve
                     </button>
@@ -283,6 +375,44 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
           </div>
         </div>
       </div>
+
+
+      {/* Confirmation Dialog Overlay */}
+      {confirmationAction && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 animate-scale-in border border-gray-100">
+            <div className="flex flex-col items-center text-center">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${confirmationAction === 'Approved' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                {confirmationAction === 'Approved' ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                ) : (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                )}
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Confirm {confirmationAction}?</h3>
+              <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                Are you sure you want to <strong>{confirmationAction?.toLowerCase()}</strong> this idea? This action requires confirmation.
+              </p>
+              <div className="flex items-center gap-3 w-full">
+                <button
+                  onClick={cancelConfirmation}
+                  className="flex-1 px-4 py-2.5 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors uppercase tracking-widest"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmStatusChange}
+                  className={`flex-1 px-4 py-2.5 text-xs font-bold text-white rounded-xl transition-all shadow-lg active:scale-95 uppercase tracking-widest ${
+                    confirmationAction === 'Approved' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-600 hover:bg-red-700'
+                  }`}
+                >
+                  Yes, {confirmationAction}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

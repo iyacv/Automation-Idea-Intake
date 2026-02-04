@@ -376,7 +376,11 @@ export function LogsPage({ user }: LogsPageProps) {
                                     <div className={`w-2 h-2 rounded-full mt-1.5 ${getLogDotColor(log.action)}`}></div>
                                     <div className="flex-1">
                                       <p className="text-sm text-gray-800">{log.details}</p>
-                                      <p className="text-xs text-gray-400">{formatDate(log.performedAt)}</p>
+                                      <div className="flex items-center gap-2 mt-0.5">
+                                        <p className="text-xs text-gray-400">{formatDate(log.performedAt)}</p>
+                                        <span className="text-xs text-gray-300">•</span>
+                                        <p className="text-xs font-semibold text-primary-600">by {log.performedBy}</p>
+                                      </div>
                                     </div>
                                   </div>
                                 ))}

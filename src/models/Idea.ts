@@ -24,6 +24,7 @@ export interface Idea {
   classification?: ClassificationCategory;
   priority?: number; // 1-10 scale
   adminRemarks?: string;
+  reviewedBy?: string;
 }
 
 // Country

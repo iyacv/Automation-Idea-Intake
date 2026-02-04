@@ -132,6 +132,24 @@ export class IdeaService {
     return this.mapToIdea(data);
   }
 
+  async getReviewers(): Promise<string[]> {
+    const { data, error } = await supabase
+      .from('ideas')
+      .select('reviewed_by');
+    
+    if (error) {
+      console.error('Error fetching reviewers:', error);
+      return ['Paul', 'Lester'];
+    }
+
+    const reviewers = new Set(['Paul', 'Lester']);
+    data?.forEach((item: any) => {
+      if (item.reviewed_by) reviewers.add(item.reviewed_by);
+    });
+
+    return Array.from(reviewers).sort();
+  }
+
   async updateIdeaStatus(
     id: string,
     status: IdeaStatus,
@@ -139,6 +157,7 @@ export class IdeaService {
       classification?: any;
       priority?: number;
       remarks?: string;
+      reviewedBy?: string;
     },
     performedBy: string = 'Admin'
   ): Promise<boolean> {
@@ -148,7 +167,8 @@ export class IdeaService {
         status,
         classification: reviewData.classification,
         priority: reviewData.priority,
-        admin_remarks: reviewData.remarks
+        admin_remarks: reviewData.remarks,
+        reviewed_by: reviewData.reviewedBy
       })
       .eq('idea_id', id);
 
@@ -173,7 +193,7 @@ export class IdeaService {
     }
 
     const auditService = new AuditService();
-    await auditService.log(id, action, performedBy, details);
+    await auditService.log(id, action, reviewData.reviewedBy || performedBy, details);
 
     return true;
   }
@@ -270,7 +290,8 @@ export class IdeaService {
       involvedDepartments: item.involved_departments || [],
       classification: item.classification,
       priority: item.priority,
-      adminRemarks: item.admin_remarks
+      adminRemarks: item.admin_remarks,
+      reviewedBy: item.reviewed_by
     };
   }
 }
