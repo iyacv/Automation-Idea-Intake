@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { User } from './models';
+import { AuthService } from './services';
 import { Header } from './components';
 import { SubmitPage, AdminDashboard, LogsPage, TrackPage, AdminIdeasPage } from './pages';
 
@@ -9,7 +10,10 @@ function App() {
   const [currentView, setCurrentView] = useState<View>('submit');
   const [displayedView, setDisplayedView] = useState<View>('submit');
   const [fading, setFading] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const authService = new AuthService();
+    return authService.getCurrentUser();
+  });
   const pendingView = useRef<View | null>(null);
 
   const handleLoginSuccess = (loggedInUser: User) => {
@@ -17,6 +21,8 @@ function App() {
   };
 
   const handleLogout = () => {
+    const authService = new AuthService();
+    authService.logout();
     setUser(null);
     handleNavigate('submit');
   };
@@ -61,7 +67,7 @@ function App() {
         className="transition-all duration-200 ease-in-out"
         style={{
           opacity: fading ? 0 : 1,
-          transform: fading ? 'translateY(8px)' : 'translateY(0)',
+          transform: fading ? 'translateY(8px)' : 'none',
         }}
       >
         {renderPage()}

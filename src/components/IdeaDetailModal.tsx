@@ -23,6 +23,16 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
 
+  // Lock page scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, []);
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -109,12 +119,9 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
   const isReadOnly = idea.status === 'Approved' || idea.status === 'Rejected';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-2 sm:p-4 overflow-y-auto pt-4 sm:pt-8">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm fixed" onClick={onClose} />
-      
-      {/* Modal Container */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-auto max-h-none lg:max-h-[92vh] overflow-visible lg:overflow-hidden animate-modal-in flex flex-col my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      {/* Modal Container - stop click propagation so clicking inside doesn't close */}
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[80vh] overflow-hidden animate-modal-in flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-primary-900 px-6 py-4 text-white shrink-0">
           <div className="flex items-center justify-between">
@@ -146,7 +153,7 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             {/* Left Column: Idea Core & Process (7/12) */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="lg:col-span-7 space-y-6 min-w-0">
               <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center text-primary-600">
@@ -158,12 +165,12 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
                 <div className="space-y-4">
                   <div>
                     <label className="text-[10px] font-bold text-primary-600 uppercase tracking-tight">Idea Title</label>
-                    <p className="text-sm font-medium text-gray-900 leading-tight">{idea.title}</p>
+                    <p className="text-sm font-medium text-gray-900 leading-tight break-words">{idea.title}</p>
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-primary-600 uppercase tracking-tight">Implementation Plan / Goal</label>
                     <div className="mt-2 bg-primary-50/30 rounded-xl p-4 border border-primary-50">
-                      <p className="text-sm font-normal text-gray-800 leading-relaxed whitespace-pre-wrap">{idea.description}</p>
+                      <p className="text-sm font-normal text-gray-800 leading-relaxed whitespace-pre-wrap break-words">{idea.description}</p>
                     </div>
                   </div>
                 </div>
@@ -171,20 +178,17 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
 
               <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                  </div>
                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Current Process</h3>
                 </div>
 
                 <div className="space-y-5">
                   <div>
                     <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">Process Title</label>
-                    <p className="text-sm font-medium text-gray-800">{idea.currentProcessTitle || 'Not Provided'}</p>
+                    <p className="text-sm font-medium text-gray-800 break-words">{idea.currentProcessTitle || 'Not Provided'}</p>
                   </div>
                   <div>
                     <label className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">Pain Points / Current Workflow</label>
-                    <p className="text-sm text-gray-600 italic font-normal leading-relaxed">{idea.currentProcessProblem || 'No additional details recorded'}</p>
+                    <p className="text-sm text-gray-600 italic font-normal leading-relaxed break-words">{idea.currentProcessProblem || 'No additional details recorded'}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className={`p-3 rounded-xl border flex items-center justify-between ${idea.isManualProcess ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-gray-50 border-gray-100 text-gray-400 opacity-60'}`}>
@@ -211,7 +215,7 @@ export function IdeaDetailModal({ idea, onClose, onUpdateStatus }: IdeaDetailMod
             </div>
 
            
-            <div className="lg:col-span-5 space-y-6">
+            <div className="lg:col-span-5 space-y-6 min-w-0">
               <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
                 <h3 className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-4">Submission Meta</h3>
                 <div className="grid grid-cols-2 gap-y-4 gap-x-6">
