@@ -324,15 +324,15 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
 
           <div>
             <label className={labelClass}>Email Address <span className="text-red-500">*</span></label>
-            <div className="flex gap-0 relative">
-              <div className="relative flex-1">
+            <div className="flex flex-col sm:flex-row gap-0 relative">
+              <div className="relative flex-1 min-w-0">
                 <input
                   type="text"
                   name="submitterEmailPrefix"
                   value={formData.submitterEmailPrefix}
                   onChange={(e) => setFormData({ ...formData, submitterEmailPrefix: e.target.value.replace(/\s+/g, '') })}
                   placeholder="Enter email ID"
-                  className={`${inputClass('submitterEmailPrefix')} pl-10 rounded-r-none border-r-0`}
+                  className={`${inputClass('submitterEmailPrefix')} pl-10 sm:rounded-r-none sm:border-r-0 rounded-b-none sm:rounded-bl-lg border-b-0 sm:border-b`}
                 />
                 <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -341,7 +341,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
               <select
                 value={formData.submitterEmailDomain}
                 onChange={(e) => setFormData({ ...formData, submitterEmailDomain: e.target.value })}
-                className="px-3 py-2.5 bg-gray-50 border border-gray-300 rounded-r-lg text-sm font-medium text-gray-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
+                className="w-full sm:w-auto px-3 py-2.5 bg-gray-50 border border-gray-300 rounded-b-lg sm:rounded-b-none sm:rounded-r-lg text-sm font-medium text-gray-600 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all"
               >
                 <option value="@madison88.com">@madison88.com</option>
                 <option value=".madison88@outlook.com">.madison88@outlook.com</option>

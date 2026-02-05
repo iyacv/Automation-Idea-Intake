@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Idea, IdeaStatus, Department, STATUS_COLORS, DEPARTMENTS, getPriorityLabel, getPriorityColor } from '../models';
+import { Idea, IdeaStatus, Department, Country, STATUS_COLORS, DEPARTMENTS, COUNTRIES, getPriorityLabel, getPriorityColor } from '../models';
 import { IdeaService } from '../services';
 
 export function TrackPage() {
@@ -8,10 +8,15 @@ export function TrackPage() {
   const [filteredIdeas, setFilteredIdeas] = useState<Idea[]>([]);
   const [filters, setFilters] = useState({
     status: '' as IdeaStatus | '',
-    department: '' as Department | ''
+    department: '' as Department | '',
+    country: '' as Country | '',
+    dateMonth: '',
+    dateFrom: '',
+    dateTo: ''
   });
   const [isLoading, setIsLoading] = useState(true);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [showDateRange, setShowDateRange] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -45,6 +50,34 @@ export function TrackPage() {
     // Department Filter
     if (filters.department) {
       result = result.filter(idea => idea.department === filters.department);
+    }
+
+    // Country Filter
+    if (filters.country) {
+      result = result.filter(idea => idea.country === filters.country);
+    }
+
+    // Date Month Filter (e.g. "2026-02")
+    if (filters.dateMonth && !filters.dateFrom && !filters.dateTo) {
+      const [year, month] = filters.dateMonth.split('-').map(Number);
+      const monthStart = new Date(year, month - 1, 1);
+      const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
+      result = result.filter(idea => {
+        const d = new Date(idea.dateSubmitted);
+        return d >= monthStart && d <= monthEnd;
+      });
+    }
+
+    // Date Range Filter (advanced)
+    if (filters.dateFrom) {
+      const from = new Date(filters.dateFrom);
+      from.setHours(0, 0, 0, 0);
+      result = result.filter(idea => new Date(idea.dateSubmitted) >= from);
+    }
+    if (filters.dateTo) {
+      const to = new Date(filters.dateTo);
+      to.setHours(23, 59, 59, 999);
+      result = result.filter(idea => new Date(idea.dateSubmitted) <= to);
     }
 
     setFilteredIdeas(result);
@@ -100,6 +133,20 @@ export function TrackPage() {
               </div>
 
               <div>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Country</label>
+                <select
+                  value={filters.country}
+                  onChange={(e) => setFilters({ ...filters, country: e.target.value as Country | '' })}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-sm appearance-none bg-white"
+                >
+                  <option value="">All Countries</option>
+                  {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+              <div>
                 <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Status</label>
                 <select
                   value={filters.status}
@@ -112,6 +159,66 @@ export function TrackPage() {
                   <option value="Approved">Approved</option>
                   <option value="Rejected">Rejected</option>
                 </select>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide">Date</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDateRange(!showDateRange);
+                      if (!showDateRange) {
+                        setFilters(f => ({ ...f, dateMonth: '' }));
+                      } else {
+                        setFilters(f => ({ ...f, dateFrom: '', dateTo: '' }));
+                      }
+                    }}
+                    className="text-[10px] font-bold text-primary-600 hover:text-primary-700 uppercase tracking-wide transition-colors"
+                  >
+                    {showDateRange ? 'Simple' : 'Advanced'}
+                  </button>
+                </div>
+                {!showDateRange ? (
+                  <input
+                    type="month"
+                    value={filters.dateMonth}
+                    onChange={(e) => setFilters({ ...filters, dateMonth: e.target.value, dateFrom: '', dateTo: '' })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-sm bg-white"
+                  />
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="date"
+                      value={filters.dateFrom}
+                      onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value, dateMonth: '' })}
+                      placeholder="From"
+                      title="Date from"
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-sm bg-white"
+                    />
+                    <input
+                      type="date"
+                      value={filters.dateTo}
+                      onChange={(e) => setFilters({ ...filters, dateTo: e.target.value, dateMonth: '' })}
+                      placeholder="To"
+                      title="Date to"
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all text-sm bg-white"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilters({ status: '', department: '', country: '', dateMonth: '', dateFrom: '', dateTo: '' });
+                    setShowDateRange(false);
+                  }}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm font-medium text-gray-500 hover:bg-gray-100 transition-all"
+                >
+                  Clear Filters
+                </button>
               </div>
             </div>
           </div>
@@ -190,26 +297,26 @@ export function TrackPage() {
                         {expandedRow === idea.id && (
                           <tr key={`${idea.id}-expanded`}>
                             <td colSpan={7} className="px-8 py-6 bg-gray-50/30 border-l-4 border-primary-500">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-full overflow-hidden">
+                                <div className="space-y-4 min-w-0">
                                   <div>
                                     <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Idea Title</h4>
-                                    <p className="text-sm font-bold text-gray-900 leading-snug break-all">{idea.title}</p>
+                                    <p className="text-sm font-bold text-gray-900 leading-snug break-words overflow-hidden">{idea.title}</p>
                                   </div>
                                   <div>
                                     <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Description</h4>
-                                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap break-all">{idea.description}</p>
+                                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{idea.description}</p>
                                   </div>
                                 </div>
-                                
-                                <div className="space-y-4">
+
+                                <div className="space-y-4 min-w-0">
                                   <div>
                                     <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Current Process</h4>
-                                    <p className="text-sm font-semibold text-gray-800">{idea.currentProcessTitle || 'N/A'}</p>
+                                    <p className="text-sm font-semibold text-gray-800 break-words overflow-hidden">{idea.currentProcessTitle || 'N/A'}</p>
                                   </div>
                                   <div>
                                     <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Process Problem / Description</h4>
-                                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{idea.currentProcessProblem || 'N/A'}</p>
+                                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{idea.currentProcessProblem || 'N/A'}</p>
                                   </div>
                                 </div>
                               </div>
