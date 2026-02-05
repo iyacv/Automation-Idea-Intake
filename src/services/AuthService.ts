@@ -19,23 +19,14 @@ export class AuthService {
     const authUser = signInData.user;
     if (!authUser) return null;
 
-    // Fetch profile data from a public profiles table keyed by auth user id
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', authUser.id)
-      .maybeSingle();
-
-    if (profileError) {
-      console.warn('Profile fetch warning:', profileError.message);
-    }
-
+    const userMetadata = authUser.user_metadata || {};
+    const appMetadata = (authUser as any).app_metadata || {};
     const mappedUser: User = {
       id: authUser.id,
-      name: profile?.name ?? authUser.user_metadata?.full_name ?? authUser.email ?? 'User',
+      name: userMetadata.full_name || userMetadata.name || appMetadata.full_name || appMetadata.name || authUser.email || 'User',
       email: authUser.email ?? '',
-      role: (profile?.role as UserRole) ?? 'Admin',
-      department: profile?.department ?? ''
+      role: ((appMetadata.role || userMetadata.role) as UserRole) || 'Submitter',
+      department: userMetadata.department || appMetadata.department || ''
     };
 
     this.currentUser = mappedUser;
