@@ -395,7 +395,7 @@ export function IdeaForm({ onSubmitSuccess }: IdeaFormProps) {
           </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-800">Idea Information</h3>
-            <p className="text-xs text-gray-400">Describe your automation idea</p>
+            <p className="text-xs text-gray-400">Describe your idea intake info</p>
           </div>
         </div>
 
