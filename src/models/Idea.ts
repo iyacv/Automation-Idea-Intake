@@ -32,13 +32,14 @@ export type Country = 'Philippines' | 'US' | 'Indonesia';
 
 // Department 
 export type Department = 
-  | 'IT'
-  | 'HR'
-  | 'Costing'
-  | 'Logistics'
-  | 'Planning'
-  | 'Purchasing'
-  | 'Admin'
+    | 'Accounting'
+    | 'Admin'
+    | 'Costing'
+    | 'HR'
+    | 'IT'
+    | 'Logistics'
+    | 'Planning'
+    | 'Purchasing'
 ;
 
 // Expected Benefit 
@@ -78,7 +79,7 @@ export const getPriorityColor = (label: PriorityLabel | 'N/A'): string => {
 export const COUNTRIES: Country[] = ['Philippines', 'US', 'Indonesia'];
 
 export const DEPARTMENTS: Department[] = [
-  'IT', 'HR', 'Costing', 'Logistics', 'Planning', 'Purchasing', 'Admin'
+  'Accounting', 'Admin', 'Costing', 'HR', 'IT', 'Logistics', 'Planning', 'Purchasing'
 ];
 
 export const EXPECTED_BENEFITS: ExpectedBenefit[] = [
